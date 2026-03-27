@@ -47,7 +47,18 @@ export type HiveEventType =
   | 'task.failed'
   | 'agent.online'
   | 'agent.offline'
-  | 'memory.updated';
+  | 'memory.updated'
+  | 'feishu.changed';
+
+export interface FeishuChangeEvent {
+  event_type: string;      // e.g., "bitable.record.changed"
+  app_token?: string;
+  table_id?: string;
+  document_id?: string;
+  action?: string;         // "record_added", "record_updated", etc.
+  operator_id?: string;
+  timestamp: string;
+}
 
 export interface HiveEvent {
   id: number;

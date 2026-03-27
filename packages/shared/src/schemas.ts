@@ -41,6 +41,6 @@ export const RetryTaskSchema = z.object({
 
 export const P2PRequestSchema = z.object({
   from_agent_id: z.string().min(1).max(64),
-  payload: z.record(z.unknown()),
+  payload: z.record(z.string(), z.unknown()),
   timeout_ms: z.number().int().min(1000).max(120_000).default(30_000),
 });

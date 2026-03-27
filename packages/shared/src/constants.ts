@@ -14,7 +14,7 @@ export const EVENT_BUFFER_CAPACITY = 1000;
 export const EVENT_TYPES = [
   'task.assigned', 'task.updated', 'task.completed',
   'task.failed', 'agent.online', 'agent.offline',
-  'memory.updated',
+  'memory.updated', 'feishu.changed',
 ] as const;
 
 export const MEMORY_NAMESPACES = {

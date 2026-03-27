@@ -7,6 +7,7 @@ import { FeishuClient } from './feishu-client.js';
 import { registerReadBitable } from './tools/read-bitable.js';
 import { registerReadDoc } from './tools/read-doc.js';
 import { registerListBitables } from './tools/list-bitables.js';
+import { registerWriteBitable } from './tools/write-bitable.js';
 
 const logger = pino({ name: 'feishu-mcp' });
 
@@ -28,6 +29,7 @@ async function main(): Promise<void> {
   registerReadBitable(server, client);
   registerReadDoc(server, client);
   registerListBitables(server, client);
+  registerWriteBitable(server, client);
 
   // Graceful shutdown
   const shutdown = async () => {
