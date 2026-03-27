@@ -4,7 +4,7 @@ import type { TaskStatus } from '@hive/shared';
 import { validate } from '../middleware/validate.js';
 import { taskMachine } from '../services/task-machine.js';
 import { registry } from '../services/registry.js';
-import { Dispatcher } from '../services/dispatcher.js';
+import { Dispatcher, scoreAgent } from '../services/dispatcher.js';
 import { eventBus } from '../services/event-bus.js';
 import { NotFoundError } from '../middleware/error-handler.js';
 
@@ -42,6 +42,14 @@ tasksRouter.get('/:id', (req, res) => {
   const task = taskMachine.get(req.params.id);
   if (!task) throw new NotFoundError(`Task ${req.params.id} not found`);
   res.json(task);
+});
+
+tasksRouter.get('/:id/routing-score', (req, res) => {
+  const task = taskMachine.get(req.params.id);
+  if (!task) throw new NotFoundError(`Task ${req.params.id} not found`);
+
+  const scores = dispatcher.scoreAllAgents(task);
+  res.json(scores);
 });
 
 tasksRouter.post('/:id/claim', validate(ClaimTaskSchema), (req, res) => {
