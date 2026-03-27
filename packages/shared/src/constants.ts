@@ -24,3 +24,10 @@ export const MEMORY_NAMESPACES = {
 } as const;
 
 export const SNAPSHOT_DEBOUNCE_MS = 2000;
+
+export const ROUTING_WEIGHTS = {
+  INTEREST_MATCH: 50,
+  CAPABILITY_MATCH: 20,
+  LOAD_BASE: 30,
+  LOAD_PER_TASK: 10,
+} as const;

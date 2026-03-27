@@ -56,6 +56,16 @@ export interface HiveEvent {
   timestamp: string;
 }
 
+export interface RoutingScore {
+  agent_id: string;
+  interest: number;   // 0 or 50
+  capability: number; // 0 or 20
+  load: number;       // 0-30
+  total: number;      // sum
+}
+
+export type DispatchStrategy = 'interest-first' | 'capability-only';
+
 export interface BoardSnapshot {
   agents: RegisteredAgent[];
   tasks: Task[];

@@ -1,6 +1,50 @@
-import type { RegisteredAgent, Task } from '@hive/shared';
+import type { RegisteredAgent, RoutingScore, Task } from '@hive/shared';
+import { ROUTING_WEIGHTS } from '@hive/shared';
 import type { AgentRegistry } from './registry.js';
 import type { TaskMachine } from './task-machine.js';
+
+/**
+ * Pure scoring function — given an agent, task, and load map, returns a RoutingScore.
+ * Agents missing required capabilities get total = 0 (filtered out).
+ */
+export function scoreAgent(
+  agent: RegisteredAgent,
+  task: Task,
+  loadMap: Map<string, number>,
+): RoutingScore {
+  // Capability gate: all required capabilities must be present
+  const hasAll = task.requiredCapabilities.every(cap => agent.capabilities.includes(cap));
+  if (!hasAll) {
+    return { agent_id: agent.agent_id, interest: 0, capability: 0, load: 0, total: 0 };
+  }
+
+  const capabilityScore = ROUTING_WEIGHTS.CAPABILITY_MATCH;
+
+  // Interest match: agent.interests intersect with requiredCapabilities OR appear as substring of title/description
+  const titleLower = task.title.toLowerCase();
+  const descLower = task.description.toLowerCase();
+  const interestMatch = agent.interests.some(interest => {
+    const iLower = interest.toLowerCase();
+    return (
+      task.requiredCapabilities.some(cap => cap.toLowerCase() === iLower) ||
+      titleLower.includes(iLower) ||
+      descLower.includes(iLower)
+    );
+  });
+  const interestScore = interestMatch ? ROUTING_WEIGHTS.INTEREST_MATCH : 0;
+
+  // Load score: base minus per-task penalty, floored at 0
+  const activeCount = loadMap.get(agent.agent_id) ?? 0;
+  const loadScore = Math.max(0, ROUTING_WEIGHTS.LOAD_BASE - activeCount * ROUTING_WEIGHTS.LOAD_PER_TASK);
+
+  return {
+    agent_id: agent.agent_id,
+    interest: interestScore,
+    capability: capabilityScore,
+    load: loadScore,
+    total: interestScore + capabilityScore + loadScore,
+  };
+}
 
 export class Dispatcher {
   constructor(
@@ -8,33 +52,49 @@ export class Dispatcher {
     private taskMachine: TaskMachine,
   ) {}
 
-  findBestAgent(requiredCapabilities: string[]): RegisteredAgent | null {
-    const onlineAgents = this.registry.getOnline();
-
-    const capable = onlineAgents.filter(agent =>
-      requiredCapabilities.every(cap => agent.capabilities.includes(cap)),
-    );
-
-    if (capable.length === 0) return null;
-
-    // Pick least-loaded agent (fewest 'working' or 'claimed' tasks)
-    const allTasks = this.taskMachine.getAll();
+  /** Build a load map from all active (claimed/working) tasks. */
+  private buildLoadMap(): Map<string, number> {
     const loadMap = new Map<string, number>();
-    for (const task of allTasks) {
+    for (const task of this.taskMachine.getAll()) {
       if (task.assignee && (task.status === 'working' || task.status === 'claimed')) {
-        loadMap.set(task.assignee, (loadMap.get(task.assignee) || 0) + 1);
+        loadMap.set(task.assignee, (loadMap.get(task.assignee) ?? 0) + 1);
       }
     }
+    return loadMap;
+  }
 
-    capable.sort((a, b) => (loadMap.get(a.agent_id) || 0) - (loadMap.get(b.agent_id) || 0));
-    return capable[0];
+  findBestAgent(requiredCapabilities: string[], task: Task): RegisteredAgent | null {
+    const onlineAgents = this.registry.getOnline();
+    const loadMap = this.buildLoadMap();
+
+    // Score all online agents, filter out those with total=0 (missing capabilities)
+    const scored = onlineAgents
+      .map(agent => ({ agent, score: scoreAgent(agent, task, loadMap) }))
+      .filter(({ score }) => score.total > 0);
+
+    if (scored.length === 0) return null;
+
+    // Sort by total descending — highest score wins
+    scored.sort((a, b) => b.score.total - a.score.total);
+    return scored[0].agent;
   }
 
   autoAssign(task: Task): { task: Task; agent: RegisteredAgent } | null {
-    const agent = this.findBestAgent(task.requiredCapabilities);
+    const agent = this.findBestAgent(task.requiredCapabilities, task);
     if (!agent) return null;
 
     const updatedTask = this.taskMachine.claim(task.id, agent.agent_id, task.version);
     return { task: updatedTask, agent };
+  }
+
+  /** Score all capable online agents for a given task — used by diagnostic endpoint. */
+  scoreAllAgents(task: Task): RoutingScore[] {
+    const onlineAgents = this.registry.getOnline();
+    const loadMap = this.buildLoadMap();
+
+    return onlineAgents
+      .map(agent => scoreAgent(agent, task, loadMap))
+      .filter(s => s.total > 0)
+      .sort((a, b) => b.total - a.total);
   }
 }
