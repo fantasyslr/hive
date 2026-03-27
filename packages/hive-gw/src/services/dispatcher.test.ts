@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { RegisteredAgent, Task } from '@hive/shared';
-import { ROUTING_WEIGHTS } from '@hive/shared';
+import { ROUTING_WEIGHTS, STARVATION_THRESHOLD_MS, STARVATION_BOOST } from '@hive/shared';
 import { scoreAgent, Dispatcher } from './dispatcher.js';
 import { AgentRegistry } from './registry.js';
 import { TaskMachine } from './task-machine.js';
@@ -152,5 +152,76 @@ describe('Dispatcher', () => {
     expect(result!.task.status).toBe('claimed');
     expect(result!.task.assignee).toBe('a1');
     expect(result!.agent.agent_id).toBe('a1');
+  });
+});
+
+/** Helper: returns ISO timestamp for `ms` milliseconds ago */
+function mockTimeAgo(ms: number): string {
+  return new Date(Date.now() - ms).toISOString();
+}
+
+describe('scoreAgent — starvation boost', () => {
+  it('agent idle > 60s gets starvation boost', () => {
+    const agent = makeAgent({ agent_id: 'starved', capabilities: ['code'], interests: [] });
+    const task = makeTask({ requiredCapabilities: ['code'] });
+    const loadMap = new Map<string, number>();
+    const lastAssignedAt = mockTimeAgo(STARVATION_THRESHOLD_MS + 1000); // 61s ago
+
+    const score = scoreAgent(agent, task, loadMap, { lastAssignedAt, hasActiveTasks: false });
+    expect(score.starvation).toBe(STARVATION_BOOST);
+    expect(score.total).toBe(0 + ROUTING_WEIGHTS.CAPABILITY_MATCH + ROUTING_WEIGHTS.LOAD_BASE + STARVATION_BOOST);
+  });
+
+  it('agent idle < 60s gets 0 starvation boost', () => {
+    const agent = makeAgent({ agent_id: 'recent', capabilities: ['code'], interests: [] });
+    const task = makeTask({ requiredCapabilities: ['code'] });
+    const loadMap = new Map<string, number>();
+    const lastAssignedAt = mockTimeAgo(STARVATION_THRESHOLD_MS - 10_000); // 50s ago
+
+    const score = scoreAgent(agent, task, loadMap, { lastAssignedAt, hasActiveTasks: false });
+    expect(score.starvation).toBe(0);
+  });
+
+  it('starvation boost elevates niche agent over interest-matched agent', () => {
+    const task = makeTask({ requiredCapabilities: ['code'], title: 'Code review' });
+    const loadMap = new Map<string, number>([['busy', 3]]);
+
+    // Interest-matched but busy: interest=50, cap=20, load=0 => 70
+    const busy = makeAgent({ agent_id: 'busy', capabilities: ['code'], interests: ['code'] });
+    const busyScore = scoreAgent(busy, task, loadMap);
+
+    // Starved niche agent: interest=0, cap=20, load=30, starvation=40 => 90
+    const niche = makeAgent({ agent_id: 'niche', capabilities: ['code'], interests: ['design'] });
+    const nicheScore = scoreAgent(niche, task, loadMap, { lastAssignedAt: mockTimeAgo(120_000), hasActiveTasks: false });
+
+    expect(nicheScore.total).toBeGreaterThan(busyScore.total);
+  });
+
+  it('agent with active tasks gets 0 starvation boost regardless of idle time', () => {
+    const agent = makeAgent({ agent_id: 'active', capabilities: ['code'], interests: [] });
+    const task = makeTask({ requiredCapabilities: ['code'] });
+    const loadMap = new Map<string, number>();
+    const lastAssignedAt = mockTimeAgo(STARVATION_THRESHOLD_MS + 5000); // 65s ago
+
+    const score = scoreAgent(agent, task, loadMap, { lastAssignedAt, hasActiveTasks: true });
+    expect(score.starvation).toBe(0);
+  });
+
+  it('lastAssignedAt resets after autoAssign', () => {
+    const registry = new AgentRegistry();
+    const taskMachine = new TaskMachine();
+    const dispatcher = new Dispatcher(registry, taskMachine);
+
+    registry.register({ agent_id: 'a1', name: 'A1', capabilities: ['code'], interests: [], endpoint: 'http://localhost:3001' });
+
+    const task = taskMachine.create({ title: 'Task 1', description: 'desc', requiredCapabilities: ['code'], createdBy: 'user-1' });
+    const result = dispatcher.autoAssign(task);
+    expect(result).not.toBeNull();
+
+    // After assignment, lastAssigned should be recent — scoring should NOT give starvation boost
+    const lastAssigned = dispatcher.getLastAssigned('a1');
+    expect(lastAssigned).toBeDefined();
+    const elapsed = Date.now() - new Date(lastAssigned!).getTime();
+    expect(elapsed).toBeLessThan(5000); // assigned within last 5 seconds
   });
 });

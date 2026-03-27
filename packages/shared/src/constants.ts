@@ -31,3 +31,6 @@ export const ROUTING_WEIGHTS = {
   LOAD_BASE: 30,
   LOAD_PER_TASK: 10,
 } as const;
+
+export const STARVATION_THRESHOLD_MS = 60_000; // 60 seconds idle triggers boost
+export const STARVATION_BOOST = 40;            // enough to compete with interest match

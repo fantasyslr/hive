@@ -15,7 +15,7 @@ export function scoreAgent(
   // Capability gate: all required capabilities must be present
   const hasAll = task.requiredCapabilities.every(cap => agent.capabilities.includes(cap));
   if (!hasAll) {
-    return { agent_id: agent.agent_id, interest: 0, capability: 0, load: 0, total: 0 };
+    return { agent_id: agent.agent_id, interest: 0, capability: 0, load: 0, starvation: 0, total: 0 };
   }
 
   const capabilityScore = ROUTING_WEIGHTS.CAPABILITY_MATCH;
@@ -42,6 +42,7 @@ export function scoreAgent(
     interest: interestScore,
     capability: capabilityScore,
     load: loadScore,
+    starvation: 0,
     total: interestScore + capabilityScore + loadScore,
   };
 }

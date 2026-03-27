@@ -58,10 +58,11 @@ export interface HiveEvent {
 
 export interface RoutingScore {
   agent_id: string;
-  interest: number;   // 0 or 50
-  capability: number; // 0 or 20
-  load: number;       // 0-30
-  total: number;      // sum
+  interest: number;    // 0 or 50
+  capability: number;  // 0 or 20
+  load: number;        // 0-30
+  starvation: number;  // 0 or STARVATION_BOOST
+  total: number;       // sum
 }
 
 export type DispatchStrategy = 'interest-first' | 'capability-only';
