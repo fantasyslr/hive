@@ -8,7 +8,9 @@
   "scripts": {
     "dev": "tsx watch packages/hive-gw/src/index.ts",
     "build": "tsup packages/hive-gw/src/index.ts --format esm --dts",
-    "test": "vitest"
+    "test": "vitest",
+    "discover-mem": "npx tsx scripts/discover-mem-tools.ts",
+    "stress-test-mem": "npx tsx scripts/stress-test-mem.ts"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
