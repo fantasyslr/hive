@@ -14,4 +14,13 @@ export const EVENT_BUFFER_CAPACITY = 1000;
 export const EVENT_TYPES = [
   'task.assigned', 'task.updated', 'task.completed',
   'task.failed', 'agent.online', 'agent.offline',
+  'memory.updated',
 ] as const;
+
+export const MEMORY_NAMESPACES = {
+  PUBLIC_CONCLUSIONS: 'public/conclusions',
+  PUBLIC_BOARD: 'public/board',
+  AGENT_PREFIX: 'agent',
+} as const;
+
+export const SNAPSHOT_DEBOUNCE_MS = 2000;

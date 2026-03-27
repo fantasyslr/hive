@@ -27,6 +27,17 @@ export interface Task {
   version: number;
   createdAt: string;
   updatedAt: string;
+  output_refs?: string[]; // e.g., ["mem://public/conclusions/task-xxx"]
+}
+
+export interface MemoryConclusion {
+  task_id: string;
+  agent_id: string;
+  conclusion: string;
+  decision_reason: string;
+  impact_scope: string;
+  timestamp: string;
+  namespace: string; // "public/conclusions/{task_id}"
 }
 
 export type HiveEventType =
@@ -35,7 +46,8 @@ export type HiveEventType =
   | 'task.completed'
   | 'task.failed'
   | 'agent.online'
-  | 'agent.offline';
+  | 'agent.offline'
+  | 'memory.updated';
 
 export interface HiveEvent {
   id: number;

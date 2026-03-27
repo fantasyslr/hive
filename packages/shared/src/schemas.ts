@@ -26,6 +26,13 @@ export const UpdateTaskSchema = z.object({
   status: z.enum(['working', 'done', 'failed']),
   result: z.string().nullish(),
   error: z.string().nullish(),
+  output_refs: z.array(z.string()).optional(),
+});
+
+export const MemorySearchSchema = z.object({
+  query: z.string().min(1).max(1024),
+  namespace: z.enum(['public', 'agent']).default('public'),
+  limit: z.number().int().min(1).max(50).default(10),
 });
 
 export const RetryTaskSchema = z.object({
