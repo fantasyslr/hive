@@ -38,3 +38,9 @@ export const MemorySearchSchema = z.object({
 export const RetryTaskSchema = z.object({
   version: z.number().int().nonnegative(),
 });
+
+export const P2PRequestSchema = z.object({
+  from_agent_id: z.string().min(1).max(64),
+  payload: z.record(z.unknown()),
+  timeout_ms: z.number().int().min(1000).max(120_000).default(30_000),
+});

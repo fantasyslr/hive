@@ -67,6 +67,21 @@ export interface RoutingScore {
 
 export type DispatchStrategy = 'interest-first' | 'capability-only';
 
+export interface P2PRequest {
+  from_agent_id: string;
+  payload: Record<string, unknown>;
+  timeout_ms?: number; // max wait for target agent response; default 30_000
+}
+
+export interface P2PResponse {
+  from_agent_id: string;
+  to_agent_id: string;
+  status: 'delivered' | 'error';
+  response?: unknown;
+  error?: string;
+  latency_ms: number;
+}
+
 export interface BoardSnapshot {
   agents: RegisteredAgent[];
   tasks: Task[];
