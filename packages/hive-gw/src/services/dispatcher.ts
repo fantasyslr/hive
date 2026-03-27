@@ -1,16 +1,23 @@
 import type { RegisteredAgent, RoutingScore, Task } from '@hive/shared';
-import { ROUTING_WEIGHTS } from '@hive/shared';
+import { ROUTING_WEIGHTS, STARVATION_THRESHOLD_MS, STARVATION_BOOST } from '@hive/shared';
 import type { AgentRegistry } from './registry.js';
 import type { TaskMachine } from './task-machine.js';
+
+export interface StarvationContext {
+  lastAssignedAt?: string;
+  hasActiveTasks?: boolean;
+}
 
 /**
  * Pure scoring function — given an agent, task, and load map, returns a RoutingScore.
  * Agents missing required capabilities get total = 0 (filtered out).
+ * Optional starvation context adds boost for idle agents.
  */
 export function scoreAgent(
   agent: RegisteredAgent,
   task: Task,
   loadMap: Map<string, number>,
+  starvationCtx?: StarvationContext,
 ): RoutingScore {
   // Capability gate: all required capabilities must be present
   const hasAll = task.requiredCapabilities.every(cap => agent.capabilities.includes(cap));
@@ -37,17 +44,28 @@ export function scoreAgent(
   const activeCount = loadMap.get(agent.agent_id) ?? 0;
   const loadScore = Math.max(0, ROUTING_WEIGHTS.LOAD_BASE - activeCount * ROUTING_WEIGHTS.LOAD_PER_TASK);
 
+  // Starvation boost: idle agents (no active tasks, idle > threshold) get priority uplift
+  let starvationScore = 0;
+  if (starvationCtx && !starvationCtx.hasActiveTasks && starvationCtx.lastAssignedAt) {
+    const idleMs = Date.now() - new Date(starvationCtx.lastAssignedAt).getTime();
+    if (idleMs > STARVATION_THRESHOLD_MS) {
+      starvationScore = STARVATION_BOOST;
+    }
+  }
+
   return {
     agent_id: agent.agent_id,
     interest: interestScore,
     capability: capabilityScore,
     load: loadScore,
-    starvation: 0,
-    total: interestScore + capabilityScore + loadScore,
+    starvation: starvationScore,
+    total: interestScore + capabilityScore + loadScore + starvationScore,
   };
 }
 
 export class Dispatcher {
+  private lastAssigned = new Map<string, string>();
+
   constructor(
     private registry: AgentRegistry,
     private taskMachine: TaskMachine,
@@ -64,13 +82,29 @@ export class Dispatcher {
     return loadMap;
   }
 
+  /** Build starvation context for an agent based on lastAssigned and active tasks. */
+  private buildStarvationCtx(agentId: string, loadMap: Map<string, number>): StarvationContext {
+    return {
+      lastAssignedAt: this.lastAssigned.get(agentId),
+      hasActiveTasks: (loadMap.get(agentId) ?? 0) > 0,
+    };
+  }
+
+  /** Get the lastAssigned timestamp for an agent — used by tests for verification. */
+  getLastAssigned(agentId: string): string | undefined {
+    return this.lastAssigned.get(agentId);
+  }
+
   findBestAgent(requiredCapabilities: string[], task: Task): RegisteredAgent | null {
     const onlineAgents = this.registry.getOnline();
     const loadMap = this.buildLoadMap();
 
     // Score all online agents, filter out those with total=0 (missing capabilities)
     const scored = onlineAgents
-      .map(agent => ({ agent, score: scoreAgent(agent, task, loadMap) }))
+      .map(agent => ({
+        agent,
+        score: scoreAgent(agent, task, loadMap, this.buildStarvationCtx(agent.agent_id, loadMap)),
+      }))
       .filter(({ score }) => score.total > 0);
 
     if (scored.length === 0) return null;
@@ -85,6 +119,8 @@ export class Dispatcher {
     if (!agent) return null;
 
     const updatedTask = this.taskMachine.claim(task.id, agent.agent_id, task.version);
+    // Record assignment time — resets starvation boost
+    this.lastAssigned.set(agent.agent_id, new Date().toISOString());
     return { task: updatedTask, agent };
   }
 
@@ -94,7 +130,7 @@ export class Dispatcher {
     const loadMap = this.buildLoadMap();
 
     return onlineAgents
-      .map(agent => scoreAgent(agent, task, loadMap))
+      .map(agent => scoreAgent(agent, task, loadMap, this.buildStarvationCtx(agent.agent_id, loadMap)))
       .filter(s => s.total > 0)
       .sort((a, b) => b.total - a.total);
   }
