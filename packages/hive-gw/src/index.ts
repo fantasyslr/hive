@@ -8,6 +8,7 @@ import { eventsRouter } from './routes/events.js';
 import { heartbeatRouter } from './routes/heartbeat.js';
 import { docsRouter } from './routes/docs.js';
 import { createMemoryRouter } from './routes/memory.js';
+import { createFeishuWebhookRouter } from './routes/feishu-webhook.js';
 import { startPromptWatcher } from './services/prompt-loader.js';
 import { memoryClient } from './services/memory-client.js';
 import { eventBus } from './services/event-bus.js';
@@ -33,6 +34,12 @@ app.use('/board', boardRouter);
 app.use('/events', eventsRouter);
 app.use('/heartbeat', heartbeatRouter);
 app.use('/memory', memoryRouter);
+// Feishu webhook (conditional on env var)
+const feishuWebhookRouter = createFeishuWebhookRouter(eventBus);
+if (feishuWebhookRouter) {
+  app.use('/webhooks/feishu', feishuWebhookRouter);
+}
+
 app.use('/', docsRouter);
 
 // Health check — includes memory status
