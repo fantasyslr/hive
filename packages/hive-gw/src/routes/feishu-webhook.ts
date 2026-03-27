@@ -1,25 +1,11 @@
 import { Router } from 'express';
 import type { EventBus } from '../services/event-bus.js';
+import { FeishuWebhookReceiver, WebhookVerificationError } from '@hive/feishu-mcp/webhook-receiver';
 import { logger } from '../config.js';
 
-interface ChallengeBody {
-  type: 'url_verification';
-  token: string;
-  challenge: string;
-}
-
-interface EventCallbackBody {
-  header: {
-    event_id: string;
-    event_type: string;
-    token: string;
-    create_time?: string;
-  };
-  event: Record<string, unknown>;
-}
-
 /**
- * Create a Feishu webhook router.
+ * Create a Feishu webhook router using FeishuWebhookReceiver for unified
+ * token verification and AES-256-CBC encrypted event decryption.
  * Returns null if FEISHU_WEBHOOK_VERIFY_TOKEN is not set.
  */
 export function createFeishuWebhookRouter(eventBus: EventBus): Router | null {
@@ -30,30 +16,20 @@ export function createFeishuWebhookRouter(eventBus: EventBus): Router | null {
     return null;
   }
 
+  const receiver = new FeishuWebhookReceiver({
+    verifyToken,
+    encryptKey: process.env.FEISHU_ENCRYPT_KEY,
+  });
+
   const router = Router();
 
   router.post('/', (req, res) => {
-    const body = req.body as Record<string, unknown>;
+    try {
+      const result = receiver.parseEvent(req.body);
 
-    // Challenge verification (Feishu URL verification handshake)
-    if (body.type === 'url_verification') {
-      const challenge = body as unknown as ChallengeBody;
-      if (challenge.token !== verifyToken) {
-        logger.warn('Feishu webhook challenge: invalid token');
-        res.status(403).json({ error: 'Invalid verification token' });
-        return;
-      }
-      logger.info('Feishu webhook challenge verified');
-      res.json({ challenge: challenge.challenge });
-      return;
-    }
-
-    // Event callback
-    const eventBody = body as unknown as EventCallbackBody;
-    if (eventBody.header?.event_type) {
-      if (eventBody.header.token !== verifyToken) {
-        logger.warn('Feishu webhook event: invalid token');
-        res.status(403).json({ error: 'Invalid verification token' });
+      if (result.type === 'challenge') {
+        logger.info('Feishu webhook challenge verified');
+        res.json({ challenge: result.challenge });
         return;
       }
 
@@ -63,24 +39,19 @@ export function createFeishuWebhookRouter(eventBus: EventBus): Router | null {
       // Emit to EventBus asynchronously
       eventBus.emit({
         type: 'feishu.changed',
-        data: {
-          event_type: eventBody.header.event_type,
-          event_id: eventBody.header.event_id,
-          app_token: eventBody.event.app_token,
-          table_id: eventBody.event.table_id,
-          document_id: eventBody.event.document_id,
-          action: eventBody.event.action,
-          operator_id: eventBody.event.operator_id,
-        },
+        data: result.event,
       });
 
-      logger.info({ event_type: eventBody.header.event_type }, 'Feishu webhook event forwarded');
-      return;
+      logger.info({ event_type: result.event.event_type }, 'Feishu webhook event forwarded');
+    } catch (err) {
+      if (err instanceof WebhookVerificationError) {
+        logger.warn({ err: err.message }, 'Feishu webhook verification failed');
+        res.status(403).json({ error: err.message });
+        return;
+      }
+      logger.error({ err }, 'Feishu webhook processing error');
+      res.status(400).json({ error: 'Invalid webhook body' });
     }
-
-    // Unrecognized body
-    logger.warn({ body }, 'Feishu webhook: unrecognized body format');
-    res.status(400).json({ error: 'Unrecognized webhook body' });
   });
 
   logger.info('Feishu webhook route enabled');

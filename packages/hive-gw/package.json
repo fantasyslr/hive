@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "dependencies": {
+    "@hive/feishu-mcp": "*",
     "@hive/shared": "*",
     "@modelcontextprotocol/sdk": "^1.28.0",
     "better-sse": "^0.16.1",
