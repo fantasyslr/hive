@@ -49,7 +49,12 @@ tasksRouter.get('/:id/routing-score', (req, res) => {
   if (!task) throw new NotFoundError(`Task ${req.params.id} not found`);
 
   const scores = dispatcher.scoreAllAgents(task);
-  res.json(scores);
+  // Enrich scores (includes starvation field) with lastAssignedAt for observability
+  const enriched = scores.map(s => ({
+    ...s,
+    lastAssignedAt: dispatcher.getLastAssigned(s.agent_id) ?? null,
+  }));
+  res.json(enriched);
 });
 
 tasksRouter.post('/:id/claim', validate(ClaimTaskSchema), (req, res) => {
