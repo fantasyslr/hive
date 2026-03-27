@@ -73,6 +73,11 @@ export class TaskMachine {
     return this.transition(taskId, 'pending', null, expectedVersion);
   }
 
+  /** Bulk-load a task from snapshot recovery — bypasses state transition validation. Only called during startup recovery. */
+  restore(task: Task): void {
+    this.tasks.set(task.id, task);
+  }
+
   /** Replace output_refs entirely — used by PATCH route when agent provides explicit refs */
   setOutputRefs(taskId: string, refs: string[]): void {
     const task = this.tasks.get(taskId);
