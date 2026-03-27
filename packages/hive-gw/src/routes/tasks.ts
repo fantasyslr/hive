@@ -54,8 +54,13 @@ tasksRouter.post('/:id/claim', validate(ClaimTaskSchema), (req, res) => {
 });
 
 tasksRouter.patch('/:id', validate(UpdateTaskSchema), (req, res) => {
-  const { agent_id, version, status, result, error } = req.body;
+  const { agent_id, version, status, result, error, output_refs } = req.body;
   const task = taskMachine.transition(req.params.id, status, agent_id, version, { result, error });
+
+  // If agent explicitly provides output_refs, set them (replace semantics)
+  if (output_refs) {
+    taskMachine.setOutputRefs(task.id, output_refs);
+  }
 
   // Emit event based on new status
   const statusToEvent: Record<string, 'task.completed' | 'task.failed' | 'task.updated'> = {

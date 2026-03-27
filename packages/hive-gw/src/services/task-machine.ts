@@ -72,6 +72,24 @@ export class TaskMachine {
   retry(taskId: string, expectedVersion: number): Task {
     return this.transition(taskId, 'pending', null, expectedVersion);
   }
+
+  /** Replace output_refs entirely — used by PATCH route when agent provides explicit refs */
+  setOutputRefs(taskId: string, refs: string[]): void {
+    const task = this.tasks.get(taskId);
+    if (task) {
+      this.tasks.set(taskId, { ...task, output_refs: refs });
+    }
+  }
+
+  /** Append to existing output_refs — used by event listener auto-write to avoid clobbering PATCH-provided refs */
+  appendOutputRefs(taskId: string, refs: string[]): void {
+    const task = this.tasks.get(taskId);
+    if (task) {
+      const existing = task.output_refs ?? [];
+      const merged = [...new Set([...existing, ...refs])]; // deduplicate
+      this.tasks.set(taskId, { ...task, output_refs: merged });
+    }
+  }
 }
 
 export const taskMachine = new TaskMachine();
