@@ -17,8 +17,17 @@ const TIMEOUT_MS =
 
 heartbeatRouter.post('/:agentId', (req, res) => {
   const { agentId } = req.params;
+  const agent = registry.get(agentId);
+  if (!agent) {
+    res.status(404).json({ error: `Agent ${agentId} not registered` });
+    return;
+  }
   heartbeats.set(agentId, Date.now());
-  registry.updateLastSeen(agentId);
+  const { restored } = registry.updateLastSeen(agentId);
+  if (restored) {
+    eventBus.emit({ type: 'agent.online', data: { agent_id: agentId, reason: 'heartbeat_restored' } });
+    logger.info({ agentId }, 'Agent restored to online via heartbeat');
+  }
   res.status(204).end();
 });
 

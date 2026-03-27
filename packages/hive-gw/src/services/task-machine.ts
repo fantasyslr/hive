@@ -52,6 +52,11 @@ export class TaskMachine {
       throw new InvalidTransitionError(`Cannot transition from ${task.status} to ${toStatus}`);
     }
 
+    // Prevent assignee hijack: once claimed/working, only the current assignee can transition
+    if (task.assignee && agentId && agentId !== task.assignee && task.status !== 'pending') {
+      throw new ConflictError(`Task ${taskId} is assigned to ${task.assignee}, not ${agentId}`);
+    }
+
     const updated: Task = {
       ...task,
       status: toStatus,
@@ -79,21 +84,23 @@ export class TaskMachine {
   }
 
   /** Replace output_refs entirely — used by PATCH route when agent provides explicit refs */
-  setOutputRefs(taskId: string, refs: string[]): void {
+  setOutputRefs(taskId: string, refs: string[]): Task | undefined {
     const task = this.tasks.get(taskId);
-    if (task) {
-      this.tasks.set(taskId, { ...task, output_refs: refs });
-    }
+    if (!task) return undefined;
+    const updated = { ...task, output_refs: refs, version: task.version + 1, updatedAt: new Date().toISOString() };
+    this.tasks.set(taskId, updated);
+    return updated;
   }
 
   /** Append to existing output_refs — used by event listener auto-write to avoid clobbering PATCH-provided refs */
-  appendOutputRefs(taskId: string, refs: string[]): void {
+  appendOutputRefs(taskId: string, refs: string[]): Task | undefined {
     const task = this.tasks.get(taskId);
-    if (task) {
-      const existing = task.output_refs ?? [];
-      const merged = [...new Set([...existing, ...refs])]; // deduplicate
-      this.tasks.set(taskId, { ...task, output_refs: merged });
-    }
+    if (!task) return undefined;
+    const existing = task.output_refs ?? [];
+    const merged = [...new Set([...existing, ...refs])]; // deduplicate
+    const updated = { ...task, output_refs: merged, version: task.version + 1, updatedAt: new Date().toISOString() };
+    this.tasks.set(taskId, updated);
+    return updated;
   }
 }
 

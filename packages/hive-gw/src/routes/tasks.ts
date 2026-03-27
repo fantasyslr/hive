@@ -58,6 +58,11 @@ tasksRouter.get('/:id/routing-score', (req, res) => {
 });
 
 tasksRouter.post('/:id/claim', validate(ClaimTaskSchema), (req, res) => {
+  const agent = registry.get(req.body.agent_id);
+  if (!agent || agent.status !== 'online') {
+    res.status(400).json({ error: `Agent ${req.body.agent_id} not found or offline` });
+    return;
+  }
   const task = taskMachine.claim(req.params.id, req.body.agent_id, req.body.version);
   eventBus.emit({
     type: 'task.assigned',
@@ -68,11 +73,11 @@ tasksRouter.post('/:id/claim', validate(ClaimTaskSchema), (req, res) => {
 
 tasksRouter.patch('/:id', validate(UpdateTaskSchema), (req, res) => {
   const { agent_id, version, status, result, error, output_refs } = req.body;
-  const task = taskMachine.transition(req.params.id, status, agent_id, version, { result, error });
+  let task = taskMachine.transition(req.params.id, status, agent_id, version, { result, error });
 
-  // If agent explicitly provides output_refs, set them (replace semantics)
+  // If agent explicitly provides output_refs, set them (replace semantics, bumps version)
   if (output_refs) {
-    taskMachine.setOutputRefs(task.id, output_refs);
+    task = taskMachine.setOutputRefs(task.id, output_refs) ?? task;
   }
 
   // Emit event based on new status

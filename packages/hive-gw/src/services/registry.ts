@@ -52,11 +52,15 @@ export class AgentRegistry {
     }
   }
 
-  updateLastSeen(agentId: string): void {
+  updateLastSeen(agentId: string): { restored: boolean } {
     const agent = this.agents.get(agentId);
-    if (agent) {
-      agent.lastSeenAt = new Date().toISOString();
+    if (!agent) return { restored: false };
+    const wasOffline = agent.status === 'offline';
+    agent.lastSeenAt = new Date().toISOString();
+    if (wasOffline) {
+      agent.status = 'online';
     }
+    return { restored: wasOffline };
   }
 }
 
