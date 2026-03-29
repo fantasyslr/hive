@@ -126,17 +126,25 @@ export class MemoryService {
     }
   }
 
+  /**
+   * Search shared memory. The `namespace` parameter is prepended to the query
+   * as a soft filter hint — Nowledge Mem does not enforce access control, so
+   * this is a convention-based prefix, NOT a security boundary.
+   */
   async search(query: string, namespace: string = 'public', limit: number = 10): Promise<unknown> {
     if (!this.ready || !this.toolNames) return [];
 
+    // Prefix query with namespace so results are scoped by convention
+    const scopedQuery = `[${namespace}] ${query}`;
+
     try {
       const result = await this.client.callTool(this.toolNames.search, {
-        query,
+        query: scopedQuery,
         limit,
       });
       return result;
     } catch (err) {
-      logger.error({ err, query, namespace }, 'Memory search failed');
+      logger.error({ err, query: scopedQuery, namespace }, 'Memory search failed');
       return [];
     }
   }

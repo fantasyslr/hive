@@ -1,11 +1,13 @@
 /**
  * Memory search route.
  *
- * KNOWN DESIGN LIMITATION (MEM-02): Namespace isolation is convention-based
- * (path prefixes like `public/*`, `agent/{id}/*`), NOT enforced by Nowledge Mem
- * access control. Any caller who knows the path convention can read/write any
- * namespace. Acceptable for the current trust model (all agents are internal)
- * but should be revisited if external agents are ever introduced.
+ * NAMESPACE ISOLATION STATUS: Convention-based (soft constraint).
+ * - The `namespace` query parameter is prepended to the search query as a
+ *   prefix hint (e.g., `[public] auth refactor`).
+ * - Nowledge Mem does NOT enforce access control per namespace.
+ * - Any agent can search any namespace if they know the path convention.
+ * - This is acceptable for the current trust model (all agents are internal).
+ * - This is NOT a security boundary — do not rely on it for access control.
  */
 import { Router } from 'express';
 import { MemorySearchSchema } from '@hive/shared';
