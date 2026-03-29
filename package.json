@@ -6,11 +6,14 @@
     "packages/*"
   ],
   "scripts": {
+    "start": "tsx packages/hive-gw/src/index.ts",
     "dev": "tsx watch packages/hive-gw/src/index.ts",
     "build": "tsup packages/hive-gw/src/index.ts --format esm --dts",
-    "test": "vitest",
-    "discover-mem": "npx tsx scripts/discover-mem-tools.ts",
-    "stress-test-mem": "npx tsx scripts/stress-test-mem.ts"
+    "test": "vitest run",
+    "setup": "bash scripts/setup.sh",
+    "smoke": "bash scripts/smoke-test.sh",
+    "discover-mem": "tsx scripts/discover-mem-tools.ts",
+    "stress-test-mem": "tsx scripts/stress-test-mem.ts"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
