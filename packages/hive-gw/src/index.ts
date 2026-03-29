@@ -16,6 +16,7 @@ import { taskMachine } from './services/task-machine.js';
 import { registry } from './services/registry.js';
 import { MemoryService } from './services/memory-service.js';
 import { BoardPersistence } from './services/board-persistence.js';
+import { VerifyLoop } from './services/verify-loop.js';
 import { errorHandler } from './middleware/error-handler.js';
 
 const app = express();
@@ -25,6 +26,7 @@ app.use(express.json());
 // Services (created before routes so the router can reference them)
 const memoryService = new MemoryService(memoryClient, eventBus, taskMachine);
 const boardPersistence = new BoardPersistence(memoryClient, eventBus, registry, taskMachine, memoryService);
+const verifyLoop = new VerifyLoop(taskMachine, eventBus);
 const memoryRouter = createMemoryRouter(memoryService);
 
 // Routes
@@ -74,9 +76,10 @@ async function start() {
     }
   }
 
-  // 4. Register all hooks (memory auto-write + board persistence)
+  // 4. Register all hooks (memory auto-write + board persistence + verify loop)
   memoryService.registerHooks();
   boardPersistence.registerHooks();
+  verifyLoop.registerHooks();
 
   // 5. Start prompt watcher
   const promptPath = join(process.cwd(), 'docs', 'orchestrator-prompt.md');
