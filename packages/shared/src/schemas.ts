@@ -39,6 +39,16 @@ export const RetryTaskSchema = z.object({
   version: z.number().int().nonnegative(),
 });
 
+export const PublishEventSchema = z.object({
+  agent_id: z.string().min(1).max(64),
+  type: z.enum([
+    'task.assigned', 'task.updated', 'task.completed',
+    'task.failed', 'agent.online', 'agent.offline',
+    'memory.updated', 'feishu.changed',
+  ]),
+  data: z.record(z.string(), z.unknown()).default({}),
+});
+
 export const P2PRequestSchema = z.object({
   from_agent_id: z.string().min(1).max(64),
   payload: z.record(z.string(), z.unknown()),

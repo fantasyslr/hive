@@ -151,7 +151,19 @@ export class MemoryService {
         .then((ref) => {
           if (ref) {
             // APPEND to existing output_refs (do not replace — PATCH route may also set refs)
-            this.tasks.appendOutputRefs(task.id, [ref]);
+            const updated = this.tasks.appendOutputRefs(task.id, [ref]);
+            if (updated) {
+              this.bus.emit({
+                type: 'task.updated',
+                data: {
+                  task_id: updated.id,
+                  agent_id: updated.assignee,
+                  status: updated.status,
+                  version: updated.version,
+                  output_refs: updated.output_refs ?? [],
+                },
+              });
+            }
           }
         })
         .catch((err) => logger.error({ err, taskId: task.id }, 'Failed to write conclusion'));

@@ -34,6 +34,10 @@ export class TaskMachine {
     return Array.from(this.tasks.values());
   }
 
+  clear(): void {
+    this.tasks.clear();
+  }
+
   transition(
     taskId: string,
     toStatus: TaskStatus,
@@ -52,15 +56,15 @@ export class TaskMachine {
       throw new InvalidTransitionError(`Cannot transition from ${task.status} to ${toStatus}`);
     }
 
-    // Prevent assignee hijack: once claimed/working, only the current assignee can transition
-    if (task.assignee && agentId && agentId !== task.assignee && task.status !== 'pending') {
+    // Once a task leaves pending, only the current assignee may advance it.
+    if (task.status !== 'pending' && agentId !== task.assignee) {
       throw new ConflictError(`Task ${taskId} is assigned to ${task.assignee}, not ${agentId}`);
     }
 
     const updated: Task = {
       ...task,
       status: toStatus,
-      assignee: toStatus === 'pending' ? null : (agentId ?? task.assignee),
+      assignee: toStatus === 'pending' ? null : (task.status === 'pending' ? agentId : task.assignee),
       result: extras?.result !== undefined ? extras.result : task.result,
       error: toStatus === 'pending' ? null : (extras?.error !== undefined ? extras.error : task.error),
       version: task.version + 1,
@@ -87,6 +91,9 @@ export class TaskMachine {
   setOutputRefs(taskId: string, refs: string[]): Task | undefined {
     const task = this.tasks.get(taskId);
     if (!task) return undefined;
+    if (this.sameRefs(task.output_refs, refs)) {
+      return task;
+    }
     const updated = { ...task, output_refs: refs, version: task.version + 1, updatedAt: new Date().toISOString() };
     this.tasks.set(taskId, updated);
     return updated;
@@ -98,9 +105,19 @@ export class TaskMachine {
     if (!task) return undefined;
     const existing = task.output_refs ?? [];
     const merged = [...new Set([...existing, ...refs])]; // deduplicate
+    if (this.sameRefs(existing, merged)) {
+      return task;
+    }
     const updated = { ...task, output_refs: merged, version: task.version + 1, updatedAt: new Date().toISOString() };
     this.tasks.set(taskId, updated);
     return updated;
+  }
+
+  private sameRefs(a?: string[], b?: string[]): boolean {
+    if (!a && !b) return true;
+    if (!a || !b) return false;
+    if (a.length !== b.length) return false;
+    return a.every((ref, index) => ref === b[index]);
   }
 }
 

@@ -17,13 +17,13 @@ const TIMEOUT_MS =
 
 heartbeatRouter.post('/:agentId', (req, res) => {
   const { agentId } = req.params;
-  const agent = registry.get(agentId);
-  if (!agent) {
-    res.status(404).json({ error: `Agent ${agentId} not registered` });
+  const { found, restored } = registry.updateLastSeen(agentId);
+  if (!found) {
+    res.status(400).json({ error: `Agent ${agentId} not registered` });
     return;
   }
+
   heartbeats.set(agentId, Date.now());
-  const { restored } = registry.updateLastSeen(agentId);
   if (restored) {
     eventBus.emit({ type: 'agent.online', data: { agent_id: agentId, reason: 'heartbeat_restored' } });
     logger.info({ agentId }, 'Agent restored to online via heartbeat');
@@ -42,7 +42,7 @@ export function removeHeartbeat(agentId: string): void {
 }
 
 // Sweep stale agents every 5 seconds
-setInterval(() => {
+const sweepTimer = setInterval(() => {
   const now = Date.now();
   for (const [agentId, lastSeen] of heartbeats) {
     if (now - lastSeen > TIMEOUT_MS) {
@@ -56,3 +56,5 @@ setInterval(() => {
     }
   }
 }, 5_000);
+
+sweepTimer.unref?.();

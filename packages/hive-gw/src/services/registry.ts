@@ -40,6 +40,10 @@ export class AgentRegistry {
     return Array.from(this.agents.values());
   }
 
+  clear(): void {
+    this.agents.clear();
+  }
+
   getOnline(): RegisteredAgent[] {
     return this.getAll().filter(a => a.status === 'online');
   }
@@ -52,15 +56,15 @@ export class AgentRegistry {
     }
   }
 
-  updateLastSeen(agentId: string): { restored: boolean } {
+  updateLastSeen(agentId: string): { found: boolean; restored: boolean } {
     const agent = this.agents.get(agentId);
-    if (!agent) return { restored: false };
+    if (!agent) return { found: false, restored: false };
     const wasOffline = agent.status === 'offline';
     agent.lastSeenAt = new Date().toISOString();
     if (wasOffline) {
       agent.status = 'online';
     }
-    return { restored: wasOffline };
+    return { found: true, restored: wasOffline };
   }
 }
 

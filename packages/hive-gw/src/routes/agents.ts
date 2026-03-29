@@ -35,8 +35,12 @@ agentsRouter.get('/:agent_id', (req, res) => {
  */
 agentsRouter.post('/:agent_id/request', validate(P2PRequestSchema), async (req, res, next) => {
   try {
-    const targetId = req.params.agent_id;
-    const { from_agent_id, payload, timeout_ms } = req.body;
+    const targetId = req.params.agent_id as string;
+    const { from_agent_id, payload, timeout_ms } = req.body as {
+      from_agent_id: string;
+      payload: Record<string, unknown>;
+      timeout_ms?: number;
+    };
 
     // Validate source agent exists and is online
     const sourceAgent = registry.get(from_agent_id);

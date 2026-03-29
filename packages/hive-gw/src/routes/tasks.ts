@@ -58,22 +58,32 @@ tasksRouter.get('/:id/routing-score', (req, res) => {
 });
 
 tasksRouter.post('/:id/claim', validate(ClaimTaskSchema), (req, res) => {
-  const agent = registry.get(req.body.agent_id);
+  const taskId = req.params.id as string;
+  const { agent_id, version } = req.body as { agent_id: string; version: number };
+  const agent = registry.get(agent_id);
   if (!agent || agent.status !== 'online') {
-    res.status(400).json({ error: `Agent ${req.body.agent_id} not found or offline` });
+    res.status(400).json({ error: `Agent ${agent_id} not found or offline` });
     return;
   }
-  const task = taskMachine.claim(req.params.id, req.body.agent_id, req.body.version);
+  const task = taskMachine.claim(taskId, agent_id, version);
   eventBus.emit({
     type: 'task.assigned',
-    data: { task_id: task.id, agent_id: req.body.agent_id },
+    data: { task_id: task.id, agent_id },
   });
   res.json(task);
 });
 
 tasksRouter.patch('/:id', validate(UpdateTaskSchema), (req, res) => {
-  const { agent_id, version, status, result, error, output_refs } = req.body;
-  let task = taskMachine.transition(req.params.id, status, agent_id, version, { result, error });
+  const taskId = req.params.id as string;
+  const { agent_id, version, status, result, error, output_refs } = req.body as {
+    agent_id: string;
+    version: number;
+    status: 'working' | 'done' | 'failed';
+    result?: string | null;
+    error?: string | null;
+    output_refs?: string[];
+  };
+  let task = taskMachine.transition(taskId, status, agent_id, version, { result, error });
 
   // If agent explicitly provides output_refs, set them (replace semantics, bumps version)
   if (output_refs) {
@@ -93,6 +103,8 @@ tasksRouter.patch('/:id', validate(UpdateTaskSchema), (req, res) => {
       data: {
         task_id: task.id,
         agent_id,
+        version: task.version,
+        output_refs: task.output_refs ?? [],
         ...(status === 'done' && { result: task.result }),
         ...(status === 'failed' && { error: task.error }),
         ...(status === 'working' && { status: 'working' }),
@@ -104,7 +116,9 @@ tasksRouter.patch('/:id', validate(UpdateTaskSchema), (req, res) => {
 });
 
 tasksRouter.post('/:id/retry', validate(RetryTaskSchema), (req, res) => {
-  const task = taskMachine.retry(req.params.id, req.body.version);
+  const taskId = req.params.id as string;
+  const { version } = req.body as { version: number };
+  const task = taskMachine.retry(taskId, version);
   eventBus.emit({
     type: 'task.updated',
     data: { task_id: task.id, status: 'pending', retry: true },

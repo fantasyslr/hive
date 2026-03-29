@@ -1,17 +1,53 @@
 import { Router } from 'express';
+import type { Request, Response } from 'express';
 import { createSession } from 'better-sse';
-import { HEARTBEAT_INTERVAL_MS } from '@hive/shared';
-import { eventBus } from '../services/event-bus.js';
-import { registry } from '../services/registry.js';
+import { HEARTBEAT_INTERVAL_MS, PublishEventSchema } from '@hive/shared';
+import type { HiveEventType } from '@hive/shared';
+import { EventBus, eventBus } from '../services/event-bus.js';
+import { AgentRegistry, registry } from '../services/registry.js';
 import { registerHeartbeat, removeHeartbeat } from './heartbeat.js';
 import { logger } from '../config.js';
 
+/** Testable handler factory for POST /events */
+export function createEventPublishHandler(bus: EventBus, reg: AgentRegistry) {
+  return (req: Request, res: Response) => {
+    const parsed = PublishEventSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Validation failed', details: parsed.error.issues });
+      return;
+    }
+
+    const { agent_id, type, data } = parsed.data;
+    const agent = reg.get(agent_id);
+    if (!agent || agent.status !== 'online') {
+      res.status(400).json({ error: `Agent ${agent_id} not found or offline` });
+      return;
+    }
+
+    const event = bus.emit({
+      type: type as HiveEventType,
+      data: { ...data, published_by: agent_id },
+    });
+
+    res.status(201).json({ event_id: event.id });
+  };
+}
+
 export const eventsRouter = Router();
+
+// POST /events — agent publishes an event to all SSE subscribers
+eventsRouter.post('/', createEventPublishHandler(eventBus, registry));
 
 eventsRouter.get('/stream', async (req, res) => {
   const agentId = req.query.agent_id as string | undefined;
   if (!agentId) {
     res.status(400).json({ error: 'agent_id query parameter is required' });
+    return;
+  }
+
+  const { found, restored } = registry.updateLastSeen(agentId);
+  if (!found) {
+    res.status(400).json({ error: `Agent ${agentId} not registered` });
     return;
   }
 
@@ -34,7 +70,9 @@ eventsRouter.get('/stream', async (req, res) => {
 
   // Track heartbeat
   registerHeartbeat(agentId);
-  registry.updateLastSeen(agentId);
+  if (restored) {
+    eventBus.emit({ type: 'agent.online', data: { agent_id: agentId, reason: 'sse_restored' } });
+  }
 
   logger.info({ agentId }, 'SSE connection established');
 

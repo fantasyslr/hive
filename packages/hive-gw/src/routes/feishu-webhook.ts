@@ -39,7 +39,7 @@ export function createFeishuWebhookRouter(eventBus: EventBus): Router | null {
       // Emit to EventBus asynchronously
       eventBus.emit({
         type: 'feishu.changed',
-        data: result.event,
+        data: { ...result.event },
       });
 
       logger.info({ event_type: result.event.event_type }, 'Feishu webhook event forwarded');
