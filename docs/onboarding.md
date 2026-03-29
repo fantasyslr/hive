@@ -125,6 +125,7 @@ Gateway forwards to the target's endpoint. Both agents must be online.
 | GET | `/tasks/:id` | — | `Task` or 404 | Get specific task |
 | POST | `/tasks/:id/claim` | `ClaimTask` | 200 + `Task` | Claim a pending task (must be online) |
 | PATCH | `/tasks/:id` | `UpdateTask` | 200 + `Task` | Update task status/result |
+| POST | `/tasks/:id/reject` | `ClaimTask` | 200 + `Task` | Reject claimed task (returns to pending) |
 | POST | `/tasks/:id/retry` | `RetryTask` | 200 + `Task` | Retry failed task (increments retry_count) |
 | GET | `/tasks/:id/routing-score` | — | `RoutingScore[]` | Diagnostic: routing scores for all agents |
 
@@ -186,13 +187,23 @@ Gateway forwards to the target's endpoint. Both agents must be online.
 
 ```
 pending -> claimed -> working -> done/failed
-                                  |
-                            failed -> pending (retry, retry_count++)
+             |                     |
+             |               failed -> pending (retry, retry_count++)
+             |
+             +-> pending (reject — agent declines the task)
 ```
 
-- Only the assigned agent can advance a task past claimed
+- Only the assigned agent can advance or reject a task past claimed
 - Only registered online agents can claim tasks
 - All transitions use optimistic concurrency via `version` field
+
+### Auto Verify/Fix Loop
+
+When a task has `verification_required: true` and completes:
+1. Gateway auto-creates a `verify` sub-task (task_kind: "verify", parent_task_id: original)
+2. If verify fails → Gateway auto-creates a `fix` sub-task
+3. Fix completes → triggers re-verify
+4. Max 2 fix cycles, then escalates (no more auto-fix)
 
 ## Event Format (SSE)
 
@@ -210,22 +221,39 @@ The server buffers the last 1000 events. On reconnect, send `Last-Event-ID` to r
 - Auto-write: Task completion automatically writes conclusions to `public/conclusions/` and process to `agent/{id}/`
 - **Namespace isolation is convention-based (soft constraint), not a security boundary**
 
-## Feishu Bridge
+## Feishu Integration
 
-Available when `feishu-mcp` is running. Currently implemented MCP tools:
+Two paths available:
 
-| Tool | Status |
-|------|--------|
-| `read_bitable` | Implemented |
-| `write_bitable` | Implemented |
-| `read_doc` | Implemented |
-| `list_bitables` | Implemented |
-| `read_sheet` | Not implemented |
-| `write_sheet` | Not implemented |
-| `write_doc` | Not implemented (Feishu API limitation: import only) |
-| `watch` | Not implemented (requires webhook + public endpoint) |
+### Option 1: Lark CLI (Recommended)
 
-Webhook events are forwarded as `feishu.changed` SSE events when `FEISHU_WEBHOOK_VERIFY_TOKEN` is configured.
+The official `@larksuite/cli` provides full Feishu access with 19 skill domains:
+
+```bash
+# Install
+npm install -g @larksuite/cli
+npx skills add larksuite/cli --all -y
+
+# Configure
+npx @larksuite/cli config init  # enters App ID + Secret
+
+# Use directly
+npx @larksuite/cli base +record-list --params '{"app_token":"...","table_id":"..."}'
+npx @larksuite/cli docs +doc-get --params '{"document_id":"..."}'
+npx @larksuite/cli sheets +read --params '{"spreadsheet_token":"..."}'
+npx @larksuite/cli event +subscribe  # WebSocket real-time events
+```
+
+Covers: base (bitable), sheets, docs, calendar, im, task, mail, contacts, wiki, events, and more.
+
+### Option 2: Built-in feishu-mcp (Subset)
+
+Standalone MCP Server with 4 tools: `read_bitable`, `write_bitable`, `read_doc`, `list_bitables`.
+Limited scope, no sheet/doc write/event support.
+
+### Webhook Events
+
+`feishu.changed` SSE events are broadcast when `FEISHU_WEBHOOK_VERIFY_TOKEN` is configured. Supports AES-256-CBC encrypted payloads via `FEISHU_ENCRYPT_KEY`.
 
 ## Routing
 

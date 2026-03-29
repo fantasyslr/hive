@@ -45,23 +45,37 @@ Gateway auto-assigns by multi-factor scoring:
 If auto-assign fails (no capable online agent), task stays `pending`.
 Monitor via `GET /board`; escalate if pending > 5 minutes.
 
-## Verify/Fix Loop
+## Verify/Fix Loop (Gateway Auto-Mechanism)
 
-When a `verification_required` task completes:
+When a `verification_required` task completes, **Gateway automatically** creates sub-tasks:
 
 ```
-Execute task completes (done)
-  → Orchestrator creates verify sub-task
+Execute task completes (done, verification_required: true)
+  → Gateway auto-creates verify sub-task
     (task_kind: "verify", parent_task_id: original task id)
   → Verifier agent picks it up
     → PASS: workflow complete
-    → FAIL: Orchestrator creates fix sub-task
+    → FAIL: Gateway auto-creates fix sub-task
       (task_kind: "fix", parent_task_id: verify task id)
-      → Fix agent picks it up → loop back to verify
+      → Fix agent picks it up → completes → Gateway re-verifies
 ```
 
-- Max 2 retries per task (`retry_count` tracked automatically)
-- After 2 retries, escalate to human
+- Max 2 fix cycles per run (Gateway tracks this internally)
+- After 2 fix cycles, Gateway emits escalation event — orchestrator handles manually
+- Orchestrator does NOT need to create verify/fix tasks — Gateway does it
+- Set `verification_required: true` on execute tasks to opt in
+
+## Task Rejection
+
+Agents can reject claimed tasks they don't want:
+
+```bash
+curl -X POST http://localhost:3000/tasks/TASK_ID/reject \
+  -H 'Content-Type: application/json' \
+  -d '{"agent_id": "your-id", "version": TASK_VERSION}'
+```
+
+This returns the task to `pending` for reassignment. Only the assigned agent can reject.
 
 ## Event Publishing
 
@@ -121,6 +135,6 @@ Gateway logs all P2P requests for observability.
 ## Current Limitations
 
 - **Memory namespace isolation is convention-based** — agents can technically read any namespace
-- **Feishu tools**: Only `read_bitable`, `write_bitable`, `read_doc`, `list_bitables` are implemented. No `write_doc`, `watch`, or sheet tools yet.
-- **Verify/fix loop is orchestrator-driven** — Gateway does not auto-create verify sub-tasks; the orchestrator must do it
+- **Feishu built-in MCP**: Only `read_bitable`, `write_bitable`, `read_doc`, `list_bitables`. Use `@larksuite/cli` for full coverage (sheets, docs write, events, calendar, etc.)
 - **No built-in task timeout** — orchestrator must monitor and handle stuck tasks manually
+- **Verify/fix loop max**: 2 fix cycles then escalation — orchestrator handles manually after that
