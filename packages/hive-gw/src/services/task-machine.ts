@@ -9,6 +9,7 @@ export class TaskMachine {
   create(params: {
     title: string; description: string; requiredCapabilities: string[]; createdBy: string;
     from_agent_id?: string; to_agent_id?: string; context_ref?: string; artifacts?: string[];
+    task_kind?: string; parent_task_id?: string; run_id?: string; verification_required?: boolean;
   }): Task {
     const now = new Date().toISOString();
     const task: Task = {
@@ -24,10 +25,15 @@ export class TaskMachine {
       version: 1,
       createdAt: now,
       updatedAt: now,
+      retry_count: 0,
       ...(params.from_agent_id && { from_agent_id: params.from_agent_id }),
       ...(params.to_agent_id && { to_agent_id: params.to_agent_id }),
       ...(params.context_ref && { context_ref: params.context_ref }),
       ...(params.artifacts && { artifacts: params.artifacts }),
+      ...(params.task_kind && { task_kind: params.task_kind as any }),
+      ...(params.parent_task_id && { parent_task_id: params.parent_task_id }),
+      ...(params.run_id && { run_id: params.run_id }),
+      ...(params.verification_required !== undefined && { verification_required: params.verification_required }),
     };
     this.tasks.set(task.id, task);
     return task;
@@ -64,7 +70,8 @@ export class TaskMachine {
     }
 
     // Once a task leaves pending, only the current assignee may advance it.
-    if (task.status !== 'pending' && agentId !== task.assignee) {
+    // Exception: null agentId is allowed when returning to pending (retry).
+    if (task.status !== 'pending' && agentId !== null && agentId !== task.assignee) {
       throw new ConflictError(`Task ${taskId} is assigned to ${task.assignee}, not ${agentId}`);
     }
 
@@ -86,11 +93,17 @@ export class TaskMachine {
   }
 
   retry(taskId: string, expectedVersion: number): Task {
+    const task = this.tasks.get(taskId);
+    if (task) {
+      // Bump retry_count before transition resets assignee
+      this.tasks.set(taskId, { ...task, retry_count: (task.retry_count ?? 0) + 1 });
+    }
     return this.transition(taskId, 'pending', null, expectedVersion);
   }
 
   /** Bulk-load a task from snapshot recovery — bypasses state transition validation. Only called during startup recovery. */
-  restore(task: Task): void {
+  restore(task: Task & { retry_count?: number }): void {
+    task.retry_count = task.retry_count ?? 0;
     this.tasks.set(task.id, task);
   }
 

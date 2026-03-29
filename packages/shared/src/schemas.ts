@@ -18,6 +18,11 @@ export const CreateTaskSchema = z.object({
   to_agent_id: z.string().min(1).max(64).optional(),
   context_ref: z.string().max(1024).optional(),
   artifacts: z.array(z.string()).optional(),
+  // Orchestration metadata (OMC-inspired, optional)
+  task_kind: z.string().min(1).max(32).optional(),
+  parent_task_id: z.string().min(1).max(64).optional(),
+  run_id: z.string().min(1).max(64).optional(),
+  verification_required: z.boolean().optional(),
 });
 
 export const ClaimTaskSchema = z.object({

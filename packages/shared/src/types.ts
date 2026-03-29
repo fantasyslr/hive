@@ -14,6 +14,8 @@ export interface RegisteredAgent extends AgentCard {
 
 export type TaskStatus = 'pending' | 'claimed' | 'working' | 'done' | 'failed';
 
+export type TaskKind = 'plan' | 'execute' | 'verify' | 'fix' | 'review' | 'explore' | 'custom';
+
 export interface Task {
   id: string;
   title: string;
@@ -27,12 +29,18 @@ export interface Task {
   version: number;
   createdAt: string;
   updatedAt: string;
-  output_refs?: string[]; // e.g., ["mem://public/conclusions/task-xxx"]
+  output_refs?: string[];      // e.g., ["mem://public/conclusions/task-xxx"]
   // Collaboration metadata (optional, backward-compatible)
-  from_agent_id?: string;    // who created/requested this task
-  to_agent_id?: string;      // intended assignee (hint, not enforced)
-  context_ref?: string;      // mem:// reference for task context
-  artifacts?: string[];      // file paths or references attached to this task
+  from_agent_id?: string;      // who created/requested this task
+  to_agent_id?: string;        // intended assignee (hint, not enforced)
+  context_ref?: string;        // mem:// reference for task context
+  artifacts?: string[];        // file paths or references attached to this task
+  // Orchestration metadata (OMC-inspired, optional)
+  task_kind?: TaskKind;        // intent: plan, execute, verify, fix, review, explore
+  parent_task_id?: string;     // links to parent task for sub-task chains
+  run_id?: string;             // groups tasks in the same workflow run
+  verification_required?: boolean; // when true, completion triggers a verifier sub-task
+  retry_count: number;         // incremented on each retry, starts at 0
 }
 
 export interface MemoryConclusion {
