@@ -81,4 +81,18 @@ describe('POST /events — agent event publishing', () => {
 
     expect(res.statusCode).toBe(400);
   });
+
+  it('rejects reserved lifecycle events (task.completed, agent.online, etc.)', () => {
+    reg.register({
+      agent_id: 'agent-1', name: 'A1', capabilities: ['x'],
+      interests: [], endpoint: 'http://localhost:4000',
+    });
+
+    for (const reserved of ['task.assigned', 'task.completed', 'task.failed', 'agent.online', 'agent.offline']) {
+      const req = mockReq({ agent_id: 'agent-1', type: reserved, data: {} });
+      const res = mockRes();
+      handler(req, res);
+      expect(res.statusCode).toBe(400);
+    }
+  });
 });

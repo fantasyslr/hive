@@ -60,8 +60,8 @@ Execute task completes (done)
       → Fix agent picks it up → loop back to verify
 ```
 
-- Max 3 retries per task (`retry_count` tracked automatically)
-- After 3 retries, escalate to human
+- Max 2 retries per task (`retry_count` tracked automatically)
+- After 2 retries, escalate to human
 
 ## Event Publishing
 

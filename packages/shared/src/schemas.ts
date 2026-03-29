@@ -52,9 +52,7 @@ export const RetryTaskSchema = z.object({
 export const PublishEventSchema = z.object({
   agent_id: z.string().min(1).max(64),
   type: z.enum([
-    'task.assigned', 'task.updated', 'task.completed',
-    'task.failed', 'agent.online', 'agent.offline',
-    'memory.updated', 'feishu.changed',
+    'task.updated', 'memory.updated', 'feishu.changed',
   ]),
   data: z.record(z.string(), z.unknown()).default({}),
 });

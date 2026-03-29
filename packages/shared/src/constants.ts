@@ -17,6 +17,17 @@ export const EVENT_TYPES = [
   'memory.updated', 'feishu.changed',
 ] as const;
 
+/** Events reserved for Gateway internal use — agents cannot publish these */
+export const RESERVED_EVENT_TYPES = [
+  'task.assigned', 'task.completed', 'task.failed',
+  'agent.online', 'agent.offline',
+] as const;
+
+/** Events agents are allowed to publish via POST /events */
+export const AGENT_PUBLISHABLE_EVENT_TYPES = [
+  'task.updated', 'memory.updated', 'feishu.changed',
+] as const;
+
 export const MEMORY_NAMESPACES = {
   PUBLIC_CONCLUSIONS: 'public/conclusions',
   PUBLIC_BOARD: 'public/board',

@@ -127,15 +127,22 @@ export class MemoryService {
   }
 
   /**
-   * Search shared memory. The `namespace` parameter is prepended to the query
-   * as a soft filter hint — Nowledge Mem does not enforce access control, so
-   * this is a convention-based prefix, NOT a security boundary.
+   * Search shared memory. The `namespace` parameter maps to the actual storage
+   * path convention used by writeConclusion/writeProcess:
+   *   - "public" → searches for "public/conclusions/" prefixed content
+   *   - "agent"  → searches for "agent/" prefixed content
+   *
+   * This is a soft query hint, NOT a security boundary. Nowledge Mem does not
+   * enforce access control per namespace.
    */
   async search(query: string, namespace: string = 'public', limit: number = 10): Promise<unknown> {
     if (!this.ready || !this.toolNames) return [];
 
-    // Prefix query with namespace so results are scoped by convention
-    const scopedQuery = `[${namespace}] ${query}`;
+    // Map namespace to the actual storage path prefix used in writes
+    const pathPrefix = namespace === 'agent'
+      ? MEMORY_NAMESPACES.AGENT_PREFIX
+      : MEMORY_NAMESPACES.PUBLIC_CONCLUSIONS;
+    const scopedQuery = `${pathPrefix} ${query}`;
 
     try {
       const result = await this.client.callTool(this.toolNames.search, {
