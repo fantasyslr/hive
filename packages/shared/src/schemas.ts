@@ -13,6 +13,11 @@ export const CreateTaskSchema = z.object({
   description: z.string().max(4096).default(''),
   requiredCapabilities: z.array(z.string().min(1)).min(1),
   createdBy: z.string().min(1),
+  // Collaboration metadata (optional, backward-compatible)
+  from_agent_id: z.string().min(1).max(64).optional(),
+  to_agent_id: z.string().min(1).max(64).optional(),
+  context_ref: z.string().max(1024).optional(),
+  artifacts: z.array(z.string()).optional(),
 });
 
 export const ClaimTaskSchema = z.object({

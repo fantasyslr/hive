@@ -6,7 +6,10 @@ import { ConflictError, InvalidTransitionError, NotFoundError } from '../middlew
 export class TaskMachine {
   private tasks = new Map<string, Task>();
 
-  create(params: { title: string; description: string; requiredCapabilities: string[]; createdBy: string }): Task {
+  create(params: {
+    title: string; description: string; requiredCapabilities: string[]; createdBy: string;
+    from_agent_id?: string; to_agent_id?: string; context_ref?: string; artifacts?: string[];
+  }): Task {
     const now = new Date().toISOString();
     const task: Task = {
       id: nanoid(),
@@ -21,6 +24,10 @@ export class TaskMachine {
       version: 1,
       createdAt: now,
       updatedAt: now,
+      ...(params.from_agent_id && { from_agent_id: params.from_agent_id }),
+      ...(params.to_agent_id && { to_agent_id: params.to_agent_id }),
+      ...(params.context_ref && { context_ref: params.context_ref }),
+      ...(params.artifacts && { artifacts: params.artifacts }),
     };
     this.tasks.set(task.id, task);
     return task;

@@ -28,6 +28,11 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
   output_refs?: string[]; // e.g., ["mem://public/conclusions/task-xxx"]
+  // Collaboration metadata (optional, backward-compatible)
+  from_agent_id?: string;    // who created/requested this task
+  to_agent_id?: string;      // intended assignee (hint, not enforced)
+  context_ref?: string;      // mem:// reference for task context
+  artifacts?: string[];      // file paths or references attached to this task
 }
 
 export interface MemoryConclusion {
