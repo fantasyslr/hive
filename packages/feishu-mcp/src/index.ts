@@ -23,7 +23,13 @@ async function main(): Promise<void> {
   const rateLimiter = new RateLimiter(FEISHU_RATE_TIERS.default);
   const client = new FeishuClient({ auth, rateLimiter });
 
-  const server = new McpServer({ name: 'feishu-mcp', version: '0.1.0' });
+  const server = new McpServer({
+    name: 'feishu-mcp',
+    version: '0.1.0',
+    // Implemented tools: read_bitable, write_bitable, read_doc, list_bitables
+    // NOT implemented: read_sheet, write_sheet, write_doc (Feishu API does not support
+    //   direct doc editing — only import), watch (requires webhook + public endpoint)
+  });
 
   // Register tools
   registerReadBitable(server, client);
