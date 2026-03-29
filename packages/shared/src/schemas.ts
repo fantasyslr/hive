@@ -1,4 +1,5 @@
 import { z } from 'zod/v4';
+import { AGENT_PUBLISHABLE_EVENT_TYPES } from './constants.js';
 
 export const AgentRegistrationSchema = z.object({
   agent_id: z.string().min(1).max(64),
@@ -51,9 +52,7 @@ export const RetryTaskSchema = z.object({
 
 export const PublishEventSchema = z.object({
   agent_id: z.string().min(1).max(64),
-  type: z.enum([
-    'task.updated', 'memory.updated', 'feishu.changed',
-  ]),
+  type: z.enum(AGENT_PUBLISHABLE_EVENT_TYPES),
   data: z.record(z.string(), z.unknown()).default({}),
 });
 

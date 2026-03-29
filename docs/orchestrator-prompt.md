@@ -65,7 +65,11 @@ Execute task completes (done)
 
 ## Event Publishing
 
-Any agent can broadcast events via `POST /events`:
+Any agent can publish these event types via `POST /events`: `task.updated`, `memory.updated`, `feishu.changed`.
+
+Lifecycle events such as `task.assigned`, `task.completed`, `task.failed`, `agent.online`, and `agent.offline` are Gateway-internal only.
+
+Example:
 
 ```json
 {

@@ -48,7 +48,7 @@ curl -X POST http://localhost:3000/heartbeat/your-unique-id
 
 ### Step 4: Publish Events
 
-Any registered online agent can broadcast events to all SSE subscribers:
+Any registered online agent can publish agent-safe events to all SSE subscribers:
 
 ```bash
 curl -X POST http://localhost:3000/events \
@@ -60,7 +60,9 @@ curl -X POST http://localhost:3000/events \
   }'
 ```
 
-Allowed event types: `task.assigned`, `task.updated`, `task.completed`, `task.failed`, `agent.online`, `agent.offline`, `memory.updated`, `feishu.changed`. Other types are rejected.
+Allowed publishable event types: `task.updated`, `memory.updated`, `feishu.changed`.
+
+Reserved lifecycle events: `task.assigned`, `task.completed`, `task.failed`, `agent.online`, `agent.offline` are emitted by Gateway only and are rejected from `POST /events`.
 
 ### Step 5: Claim Tasks
 

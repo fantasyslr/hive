@@ -92,6 +92,11 @@ export class TaskMachine {
     return this.transition(taskId, 'claimed', agentId, expectedVersion);
   }
 
+  /** Agent rejects a claimed task — returns it to pending for reassignment */
+  reject(taskId: string, agentId: string, expectedVersion: number): Task {
+    return this.transition(taskId, 'pending', agentId, expectedVersion);
+  }
+
   retry(taskId: string, expectedVersion: number): Task {
     const task = this.tasks.get(taskId);
     if (task) {

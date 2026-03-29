@@ -73,6 +73,17 @@ tasksRouter.post('/:id/claim', validate(ClaimTaskSchema), (req, res) => {
   res.json(task);
 });
 
+tasksRouter.post('/:id/reject', validate(ClaimTaskSchema), (req, res) => {
+  const taskId = req.params.id as string;
+  const { agent_id, version } = req.body as { agent_id: string; version: number };
+  const task = taskMachine.reject(taskId, agent_id, version);
+  eventBus.emit({
+    type: 'task.updated',
+    data: { task_id: task.id, agent_id, action: 'rejected', status: 'pending' },
+  });
+  res.json(task);
+});
+
 tasksRouter.patch('/:id', validate(UpdateTaskSchema), (req, res) => {
   const taskId = req.params.id as string;
   const { agent_id, version, status, result, error, output_refs } = req.body as {
