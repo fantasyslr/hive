@@ -40,7 +40,7 @@ export interface Task {
   parent_task_id?: string;     // links to parent task for sub-task chains
   run_id?: string;             // groups tasks in the same workflow run
   verification_required?: boolean; // when true, completion triggers a verifier sub-task
-  retry_count: number;         // incremented on each retry, starts at 0
+  retry_count?: number;        // incremented on each retry, defaults to 0
 }
 
 export interface MemoryConclusion {
