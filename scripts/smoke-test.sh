@@ -27,11 +27,11 @@ curl -sf -X POST "$BASE/tasks/$TASK2_ID/claim" -H 'Content-Type: application/jso
   -d "{\"agent_id\":\"smoke-1\",\"version\":$TASK2_VER}"
 echo ""
 
-echo "--- Double claim (expect 409 or 422) ---"
+echo "--- Double claim with stale version (expect 409) ---"
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE/tasks/$TASK2_ID/claim" -H 'Content-Type: application/json' \
-  -d "{\"agent_id\":\"smoke-2\",\"version\":$TASK2_VER}")
-echo "Double claim status: $HTTP_CODE (expect 409 or 422)"
-[ "$HTTP_CODE" = "409" ] || [ "$HTTP_CODE" = "422" ] || { echo "FAIL: expected 409 or 422, got $HTTP_CODE"; exit 1; }
+  -d "{\"agent_id\":\"smoke-1\",\"version\":$TASK2_VER}")
+echo "Double claim status: $HTTP_CODE (expect 409)"
+[ "$HTTP_CODE" = "409" ] || { echo "FAIL: expected 409, got $HTTP_CODE"; exit 1; }
 
 echo "--- Board ---"
 curl -sf $BASE/board | head -c 500

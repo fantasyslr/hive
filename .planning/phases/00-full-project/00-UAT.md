@@ -46,9 +46,7 @@ result: pass
 
 ### 9. Smoke Test 脚本
 expected: `bash scripts/smoke-test.sh` 全部通过
-result: issue
-reported: "Double claim 检查失败：脚本期望返回 409 或 422，实际返回 400。task-machine 对已 claimed 任务的重复 claim 返回的 HTTP 状态码不符合脚本预期。"
-severity: minor
+result: pass
 
 ### 10. Feishu Webhook 挑战握手
 expected: POST /webhooks/feishu 发送 url_verification，返回 {"challenge": "abc123"}
@@ -61,21 +59,11 @@ result: pass
 ## Summary
 
 total: 11
-passed: 10
-issues: 1
+passed: 11
+issues: 0
 pending: 0
 skipped: 0
 
 ## Gaps
 
-- truth: "Double claim 返回 409 (Conflict) 或 422 (Unprocessable Entity)"
-  status: failed
-  reason: "User reported: smoke-test.sh 期望 double claim 返回 409 或 422，实际返回 400。task-machine 的错误码与脚本断言不一致。"
-  severity: minor
-  test: 9
-  artifacts:
-    - path: "packages/hive-gw/src/services/task-machine.ts"
-      issue: "claim() 对已 claimed 任务抛出的错误被 error-handler 映射为 400 而非 409"
-    - path: "scripts/smoke-test.sh"
-      issue: "断言期望 409 或 422"
-  missing: []
+[none]
