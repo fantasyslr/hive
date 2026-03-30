@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 01-03-PLAN.md (role-based visibility)
-last_updated: "2026-03-30T15:17:49.373Z"
+stopped_at: Completed 02-01-PLAN.md (memory store enhancement)
+last_updated: "2026-03-30T15:31:24.099Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 3
+  total_plans: 7
+  completed_plans: 4
   percent: 0
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** Every task's process and output is captured in shared memory, so the team never starts from scratch on similar work again.
-**Current focus:** Phase 01 — api-stabilization-auth
+**Current focus:** Phase 02 — memory-enhancement
 
 ## Current Position
 
-Phase: 01 (api-stabilization-auth) — EXECUTING
-Plan: 3 of 3
+Phase: 02 (memory-enhancement) — EXECUTING
+Plan: 2 of 2
 Status: Phase complete — ready for verification
 Last activity: 2026-03-30
 
@@ -57,6 +57,8 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P01 | 225s | 2 tasks | 21 files |
 | Phase 01 P01 | 633 | 2 tasks | 20 files |
 | Phase 01 P03 | 161 | 2 tasks | 4 files |
+| Phase 02 P01 | 385 | 2 tasks | 4 files |
+| Phase 02-memory-enhancement P01 | 288 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -72,6 +74,10 @@ Recent decisions affecting current work:
 - [Phase 01]: Express route URL params (req.params.agent_id) kept as-is - URL path convention
 - [Phase 01]: All API fields unified to camelCase; Express URL path params (:agent_id) kept as URL convention
 - [Phase 01]: filterTasksByRole extracted to shared util; single-task GET /:id intentionally unfiltered
+- [Phase 02]: MemoryRecord/SearchHit/SearchFilter types in @hive/shared for cross-package use
+- [Phase 02]: Content dedup uses embedding.score() (vector+token) with 0.85 threshold, only in namespaced entries
+- [Phase 02-memory-enhancement]: Types (MemoryRecord/SearchHit/SearchFilter) in @hive/shared for cross-package use
+- [Phase 02-memory-enhancement]: Dedup uses embedding.score() (combined similarity) not raw cosine; only active with non-empty namespace
 
 ### Pending Todos
 
@@ -89,6 +95,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T15:17:49.371Z
-Stopped at: Completed 01-03-PLAN.md (role-based visibility)
+Last session: 2026-03-30T15:31:12.692Z
+Stopped at: Completed 02-01-PLAN.md (memory store enhancement)
 Resume file: None

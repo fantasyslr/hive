@@ -3,11 +3,11 @@
 ## v1 Requirements
 
 ### Memory Enhancement
-- [ ] **MEM-01**: Memory entries include source metadata (agent_id, task_id, created_by)
-- [ ] **MEM-02**: Namespace is an independent field on memory entries, not a title prefix convention
-- [ ] **MEM-03**: Duplicate detection on write — same namespace + similar content → update instead of insert
-- [ ] **MEM-04**: Memory entries support TTL with configurable expiration
-- [ ] **MEM-05**: Memory search supports filtering by namespace, agent_id, and time range
+- [x] **MEM-01**: Memory entries include source metadata (agent_id, task_id, created_by)
+- [x] **MEM-02**: Namespace is an independent field on memory entries, not a title prefix convention
+- [x] **MEM-03**: Duplicate detection on write — same namespace + similar content → update instead of insert
+- [x] **MEM-04**: Memory entries support TTL with configurable expiration
+- [x] **MEM-05**: Memory search supports filtering by namespace, agent_id, and time range
 
 ### User Authentication
 - [x] **AUTH-01**: Simple role-based user login (4 fixed users: 投放, 运营, 素材, 主管)
@@ -46,11 +46,11 @@
 | AUTH-01 | Phase 1 | Complete |
 | AUTH-02 | Phase 1 | Complete |
 | AUTH-03 | Phase 1 | Complete |
-| MEM-01 | Phase 2 | Pending |
-| MEM-02 | Phase 2 | Pending |
-| MEM-03 | Phase 2 | Pending |
-| MEM-04 | Phase 2 | Pending |
-| MEM-05 | Phase 2 | Pending |
+| MEM-01 | Phase 2 | Complete |
+| MEM-02 | Phase 2 | Complete |
+| MEM-03 | Phase 2 | Complete |
+| MEM-04 | Phase 2 | Complete |
+| MEM-05 | Phase 2 | Complete |
 | TMPL-01 | Phase 3 | Pending |
 | TMPL-02 | Phase 3 | Pending |
 | TMPL-03 | Phase 3 | Pending |
