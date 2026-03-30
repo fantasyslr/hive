@@ -20,7 +20,7 @@
 - [ ] **TMPL-03**: Templates stored as JSON config, hot-reloadable like orchestrator prompt
 
 ### API Consistency
-- [ ] **API-01**: Unify all API field names to camelCase (fix snake_case fields: verification_required, retry_count, etc.)
+- [x] **API-01**: Unify all API field names to camelCase (fix snake_case fields: verification_required, retry_count, etc.)
 
 ## v2 Requirements (Deferred)
 
@@ -42,7 +42,7 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| API-01 | Phase 1 | Pending |
+| API-01 | Phase 1 | Complete |
 | AUTH-01 | Phase 1 | Complete |
 | AUTH-02 | Phase 1 | Complete |
 | AUTH-03 | Phase 1 | Pending |
