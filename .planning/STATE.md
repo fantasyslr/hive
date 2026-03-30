@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 02-01-PLAN.md (memory store enhancement)
-last_updated: "2026-03-30T15:31:32.770Z"
+stopped_at: Completed 02-02-PLAN.md (MCP tool & gateway wiring)
+last_updated: "2026-03-30T15:37:57.140Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P03 | 161 | 2 tasks | 4 files |
 | Phase 02 P01 | 385 | 2 tasks | 4 files |
 | Phase 02-memory-enhancement P01 | 288 | 2 tasks | 4 files |
+| Phase 02 P02 | 276 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,7 @@ Recent decisions affecting current work:
 - [Phase 02-memory-enhancement]: Types (MemoryRecord/SearchHit/SearchFilter) in @hive/shared for cross-package use
 - [Phase 02-memory-enhancement]: Dedup uses embedding.score() (combined similarity) not raw cosine; only active with non-empty namespace
 - [Phase 02-memory-enhancement]: ISO string TTL comparison instead of SQLite datetime() for consistency with app-layer timestamps
+- [Phase 02]: MemorySearchSchema namespace changed from enum to free-form string for arbitrary namespace support
 
 ### Pending Todos
 
@@ -96,6 +98,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T15:31:32.768Z
-Stopped at: Completed 02-01-PLAN.md (memory store enhancement)
+Last session: 2026-03-30T15:37:57.138Z
+Stopped at: Completed 02-02-PLAN.md (MCP tool & gateway wiring)
 Resume file: None

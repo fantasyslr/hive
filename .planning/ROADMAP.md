@@ -48,7 +48,7 @@ Plans:
 
 Plans:
 - [x] 02-01-PLAN.md — Extend SQLite store with namespace column, agentId/taskId source tracking, TTL expiration, content dedup, and filtered search
-- [ ] 02-02-PLAN.md — Wire new store features through MCP server tools, shared schemas, Gateway MemoryService, and search route
+- [x] 02-02-PLAN.md — Wire new store features through MCP server tools, shared schemas, Gateway MemoryService, and search route
 
 ### Phase 3: Campaign Templates
 **Goal**: A manager can launch a structured campaign that automatically creates role-specific sub-tasks with the right ordering
