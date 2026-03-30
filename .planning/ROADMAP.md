@@ -31,7 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [ ] 01-01-PLAN.md — Rename all snake_case fields to camelCase across shared types, schemas, services, routes, and tests (API-01)
-- [ ] 01-02-PLAN.md — Create Bearer token auth with 4 fixed users and apply middleware to all endpoints (AUTH-01, AUTH-02)
+- [x] 01-02-PLAN.md — Create Bearer token auth with 4 fixed users and apply middleware to all endpoints (AUTH-01, AUTH-02)
 - [ ] 01-03-PLAN.md — Add role-based task visibility scoping to GET /tasks and GET /board (AUTH-03)
 
 ### Phase 2: Memory Enhancement
