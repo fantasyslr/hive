@@ -27,7 +27,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Requests without a valid Bearer token receive 401; requests with a valid token include user identity in the response context
   3. A user with role "主管" can see all tasks; a user with role "投放" sees only their own tasks and shared tasks
   4. Existing tests pass against the new field names (no silent breakage)
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Rename all snake_case fields to camelCase across shared types, schemas, services, routes, and tests (API-01)
+- [ ] 01-02-PLAN.md — Create Bearer token auth with 4 fixed users and apply middleware to all endpoints (AUTH-01, AUTH-02)
+- [ ] 01-03-PLAN.md — Add role-based task visibility scoping to GET /tasks and GET /board (AUTH-03)
 
 ### Phase 2: Memory Enhancement
 **Goal**: Every piece of team knowledge has a clear origin, lives in a proper namespace, avoids duplication, and expires when stale
@@ -58,6 +63,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. API Stabilization & Auth | 0/? | Not started | - |
+| 1. API Stabilization & Auth | 0/3 | Planning done | - |
 | 2. Memory Enhancement | 0/? | Not started | - |
 | 3. Campaign Templates | 0/? | Not started | - |
