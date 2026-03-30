@@ -58,7 +58,11 @@ Plans:
   1. Creating a task from the "Campaign" template produces a parent task and one sub-task per role (投放, 运营, 素材) with correct assignments
   2. Sub-tasks have dependency ordering enforced -- a dependent sub-task cannot be claimed until its predecessor is done
   3. Templates are stored as JSON config files and can be modified without restarting the server
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Template types, JSON loader with hot-reload, dependency enforcement in claim route (TMPL-02, TMPL-03)
+- [ ] 03-02-PLAN.md — Template instantiation route: launch campaign creating parent + sub-tasks with resolved deps (TMPL-01)
 
 ## Progress
 
@@ -69,4 +73,4 @@ Phases execute in numeric order: 1 → 2 → 3
 |-------|----------------|--------|-----------|
 | 1. API Stabilization & Auth | 2/3 | In progress | - |
 | 2. Memory Enhancement | 0/2 | Planning done | - |
-| 3. Campaign Templates | 0/? | Not started | - |
+| 3. Campaign Templates | 0/2 | Planning done | - |
