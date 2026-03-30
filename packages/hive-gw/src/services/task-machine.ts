@@ -8,8 +8,8 @@ export class TaskMachine {
 
   create(params: {
     title: string; description: string; requiredCapabilities: string[]; createdBy: string;
-    from_agent_id?: string; to_agent_id?: string; context_ref?: string; artifacts?: string[];
-    task_kind?: string; parent_task_id?: string; run_id?: string; verification_required?: boolean;
+    fromAgentId?: string; toAgentId?: string; contextRef?: string; artifacts?: string[];
+    taskKind?: string; parentTaskId?: string; runId?: string; verificationRequired?: boolean;
   }): Task {
     const now = new Date().toISOString();
     const task: Task = {
@@ -25,15 +25,15 @@ export class TaskMachine {
       version: 1,
       createdAt: now,
       updatedAt: now,
-      retry_count: 0,
-      ...(params.from_agent_id && { from_agent_id: params.from_agent_id }),
-      ...(params.to_agent_id && { to_agent_id: params.to_agent_id }),
-      ...(params.context_ref && { context_ref: params.context_ref }),
+      retryCount: 0,
+      ...(params.fromAgentId && { fromAgentId: params.fromAgentId }),
+      ...(params.toAgentId && { toAgentId: params.toAgentId }),
+      ...(params.contextRef && { contextRef: params.contextRef }),
       ...(params.artifacts && { artifacts: params.artifacts }),
-      ...(params.task_kind && { task_kind: params.task_kind as any }),
-      ...(params.parent_task_id && { parent_task_id: params.parent_task_id }),
-      ...(params.run_id && { run_id: params.run_id }),
-      ...(params.verification_required !== undefined && { verification_required: params.verification_required }),
+      ...(params.taskKind && { taskKind: params.taskKind as any }),
+      ...(params.parentTaskId && { parentTaskId: params.parentTaskId }),
+      ...(params.runId && { runId: params.runId }),
+      ...(params.verificationRequired !== undefined && { verificationRequired: params.verificationRequired }),
     };
     this.tasks.set(task.id, task);
     return task;
@@ -109,8 +109,8 @@ export class TaskMachine {
   retry(taskId: string, expectedVersion: number): Task {
     const task = this.tasks.get(taskId);
     if (task) {
-      // Bump retry_count before transition resets assignee
-      this.tasks.set(taskId, { ...task, retry_count: (task.retry_count ?? 0) + 1 });
+      // Bump retryCount before transition resets assignee
+      this.tasks.set(taskId, { ...task, retryCount: (task.retryCount ?? 0) + 1 });
     }
     return this.transition(taskId, 'pending', null, expectedVersion);
   }
@@ -135,33 +135,33 @@ export class TaskMachine {
   }
 
   /** Bulk-load a task from snapshot recovery — bypasses state transition validation. Only called during startup recovery. */
-  restore(task: Task & { retry_count?: number }): void {
-    task.retry_count = task.retry_count ?? 0;
+  restore(task: Task & { retryCount?: number }): void {
+    task.retryCount = task.retryCount ?? 0;
     this.tasks.set(task.id, task);
   }
 
-  /** Replace output_refs entirely — used by PATCH route when agent provides explicit refs */
+  /** Replace outputRefs entirely — used by PATCH route when agent provides explicit refs */
   setOutputRefs(taskId: string, refs: string[]): Task | undefined {
     const task = this.tasks.get(taskId);
     if (!task) return undefined;
-    if (this.sameRefs(task.output_refs, refs)) {
+    if (this.sameRefs(task.outputRefs, refs)) {
       return task;
     }
-    const updated = { ...task, output_refs: refs, version: task.version + 1, updatedAt: new Date().toISOString() };
+    const updated = { ...task, outputRefs: refs, version: task.version + 1, updatedAt: new Date().toISOString() };
     this.tasks.set(taskId, updated);
     return updated;
   }
 
-  /** Append to existing output_refs — used by event listener auto-write to avoid clobbering PATCH-provided refs */
+  /** Append to existing outputRefs — used by event listener auto-write to avoid clobbering PATCH-provided refs */
   appendOutputRefs(taskId: string, refs: string[]): Task | undefined {
     const task = this.tasks.get(taskId);
     if (!task) return undefined;
-    const existing = task.output_refs ?? [];
+    const existing = task.outputRefs ?? [];
     const merged = [...new Set([...existing, ...refs])]; // deduplicate
     if (this.sameRefs(existing, merged)) {
       return task;
     }
-    const updated = { ...task, output_refs: merged, version: task.version + 1, updatedAt: new Date().toISOString() };
+    const updated = { ...task, outputRefs: merged, version: task.version + 1, updatedAt: new Date().toISOString() };
     this.tasks.set(taskId, updated);
     return updated;
   }

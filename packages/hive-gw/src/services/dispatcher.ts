@@ -22,7 +22,7 @@ export function scoreAgent(
   // Capability gate: all required capabilities must be present
   const hasAll = task.requiredCapabilities.every(cap => agent.capabilities.includes(cap));
   if (!hasAll) {
-    return { agent_id: agent.agent_id, interest: 0, capability: 0, load: 0, starvation: 0, total: 0 };
+    return { agentId: agent.agentId, interest: 0, capability: 0, load: 0, starvation: 0, total: 0 };
   }
 
   const capabilityScore = ROUTING_WEIGHTS.CAPABILITY_MATCH;
@@ -41,7 +41,7 @@ export function scoreAgent(
   const interestScore = interestMatch ? ROUTING_WEIGHTS.INTEREST_MATCH : 0;
 
   // Load score: base minus per-task penalty, floored at 0
-  const activeCount = loadMap.get(agent.agent_id) ?? 0;
+  const activeCount = loadMap.get(agent.agentId) ?? 0;
   const loadScore = Math.max(0, ROUTING_WEIGHTS.LOAD_BASE - activeCount * ROUTING_WEIGHTS.LOAD_PER_TASK);
 
   // Starvation boost: idle agents (no active tasks, idle > threshold) get priority uplift
@@ -54,7 +54,7 @@ export function scoreAgent(
   }
 
   return {
-    agent_id: agent.agent_id,
+    agentId: agent.agentId,
     interest: interestScore,
     capability: capabilityScore,
     load: loadScore,
@@ -103,7 +103,7 @@ export class Dispatcher {
     const scored = onlineAgents
       .map(agent => ({
         agent,
-        score: scoreAgent(agent, task, loadMap, this.buildStarvationCtx(agent.agent_id, loadMap)),
+        score: scoreAgent(agent, task, loadMap, this.buildStarvationCtx(agent.agentId, loadMap)),
       }))
       .filter(({ score }) => score.total > 0);
 
@@ -118,9 +118,9 @@ export class Dispatcher {
     const agent = this.findBestAgent(task.requiredCapabilities, task);
     if (!agent) return null;
 
-    const updatedTask = this.taskMachine.claim(task.id, agent.agent_id, task.version);
+    const updatedTask = this.taskMachine.claim(task.id, agent.agentId, task.version);
     // Record assignment time — resets starvation boost
-    this.lastAssigned.set(agent.agent_id, new Date().toISOString());
+    this.lastAssigned.set(agent.agentId, new Date().toISOString());
     return { task: updatedTask, agent };
   }
 
@@ -130,7 +130,7 @@ export class Dispatcher {
     const loadMap = this.buildLoadMap();
 
     return onlineAgents
-      .map(agent => scoreAgent(agent, task, loadMap, this.buildStarvationCtx(agent.agent_id, loadMap)))
+      .map(agent => scoreAgent(agent, task, loadMap, this.buildStarvationCtx(agent.agentId, loadMap)))
       .filter(s => s.total > 0)
       .sort((a, b) => b.total - a.total);
   }

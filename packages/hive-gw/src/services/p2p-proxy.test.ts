@@ -3,11 +3,11 @@ import { forwardP2PRequest, type ForwardRequest } from './p2p-proxy.js';
 
 describe('forwardP2PRequest', () => {
   const baseReq: ForwardRequest = {
-    from_agent_id: 'agent-a',
-    to_agent_id: 'agent-b',
+    fromAgentId: 'agent-a',
+    toAgentId: 'agent-b',
     endpoint: 'http://localhost:4001',
     payload: { action: 'summarize', data: 'some content' },
-    timeout_ms: 5000,
+    timeoutMs: 5000,
   };
 
   beforeEach(() => {
@@ -29,10 +29,10 @@ describe('forwardP2PRequest', () => {
     const result = await forwardP2PRequest(baseReq);
 
     expect(result.status).toBe('delivered');
-    expect(result.from_agent_id).toBe('agent-a');
-    expect(result.to_agent_id).toBe('agent-b');
+    expect(result.fromAgentId).toBe('agent-a');
+    expect(result.toAgentId).toBe('agent-b');
     expect(result.response).toEqual(mockResponse);
-    expect(result.latency_ms).toBeGreaterThanOrEqual(0);
+    expect(result.latencyMs).toBeGreaterThanOrEqual(0);
   });
 
   it('sends POST to {endpoint}/p2p with correct body', async () => {
@@ -50,7 +50,7 @@ describe('forwardP2PRequest', () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          from_agent_id: 'agent-a',
+          fromAgentId: 'agent-a',
           payload: { action: 'summarize', data: 'some content' },
         }),
       }),
@@ -93,14 +93,14 @@ describe('forwardP2PRequest', () => {
 
     expect(result.status).toBe('error');
     expect(result.error).toBe('fetch failed');
-    expect(result.latency_ms).toBeGreaterThanOrEqual(0);
+    expect(result.latencyMs).toBeGreaterThanOrEqual(0);
   });
 
-  it('returns timeout error when request exceeds timeout_ms', async () => {
+  it('returns timeout error when request exceeds timeoutMs', async () => {
     const abortError = new DOMException('The operation was aborted', 'AbortError');
     (fetch as ReturnType<typeof vi.fn>).mockRejectedValue(abortError);
 
-    const result = await forwardP2PRequest({ ...baseReq, timeout_ms: 100 });
+    const result = await forwardP2PRequest({ ...baseReq, timeoutMs: 100 });
 
     expect(result.status).toBe('error');
     expect(result.error).toContain('timed out');
@@ -115,7 +115,7 @@ describe('forwardP2PRequest', () => {
 
     const result = await forwardP2PRequest(baseReq);
 
-    expect(result.latency_ms).toBeGreaterThanOrEqual(40); // allow small timing variance
-    expect(result.latency_ms).toBeLessThan(5000);
+    expect(result.latencyMs).toBeGreaterThanOrEqual(40); // allow small timing variance
+    expect(result.latencyMs).toBeLessThan(5000);
   });
 });

@@ -1,18 +1,18 @@
 import type { P2PResponse } from '@hive/shared';
 
 export interface ForwardRequest {
-  from_agent_id: string;
-  to_agent_id: string;
+  fromAgentId: string;
+  toAgentId: string;
   endpoint: string; // target agent's HTTP endpoint
   payload: Record<string, unknown>;
-  timeout_ms: number;
+  timeoutMs: number;
 }
 
 /**
  * Forward a P2P request to the target agent's endpoint.
  *
  * Convention: POST {agent.endpoint}/p2p with JSON body:
- *   { from_agent_id, payload }
+ *   { fromAgentId, payload }
  *
  * The target agent responds with arbitrary JSON which is relayed back.
  * If the target is unreachable or times out, an error P2PResponse is returned.
@@ -23,55 +23,55 @@ export async function forwardP2PRequest(req: ForwardRequest): Promise<P2PRespons
 
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), req.timeout_ms);
+    const timer = setTimeout(() => controller.abort(), req.timeoutMs);
 
     const response = await fetch(targetUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from_agent_id: req.from_agent_id,
+        fromAgentId: req.fromAgentId,
         payload: req.payload,
       }),
       signal: controller.signal,
     });
 
     clearTimeout(timer);
-    const latency_ms = Date.now() - start;
+    const latencyMs = Date.now() - start;
 
     if (!response.ok) {
       return {
-        from_agent_id: req.from_agent_id,
-        to_agent_id: req.to_agent_id,
+        fromAgentId: req.fromAgentId,
+        toAgentId: req.toAgentId,
         status: 'error',
         error: `Target agent responded with HTTP ${response.status}`,
-        latency_ms,
+        latencyMs,
       };
     }
 
     const body = await response.json();
 
     return {
-      from_agent_id: req.from_agent_id,
-      to_agent_id: req.to_agent_id,
+      fromAgentId: req.fromAgentId,
+      toAgentId: req.toAgentId,
       status: 'delivered',
       response: body,
-      latency_ms,
+      latencyMs,
     };
   } catch (err: unknown) {
-    const latency_ms = Date.now() - start;
+    const latencyMs = Date.now() - start;
     const message =
       err instanceof Error
         ? err.name === 'AbortError'
-          ? `Request to ${req.to_agent_id} timed out after ${req.timeout_ms}ms`
+          ? `Request to ${req.toAgentId} timed out after ${req.timeoutMs}ms`
           : err.message
         : 'Unknown error';
 
     return {
-      from_agent_id: req.from_agent_id,
-      to_agent_id: req.to_agent_id,
+      fromAgentId: req.fromAgentId,
+      toAgentId: req.toAgentId,
       status: 'error',
       error: message,
-      latency_ms,
+      latencyMs,
     };
   }
 }

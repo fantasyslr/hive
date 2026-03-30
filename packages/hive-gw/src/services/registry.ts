@@ -4,7 +4,7 @@ export class AgentRegistry {
   private agents = new Map<string, RegisteredAgent>();
 
   register(card: AgentCard): { agent: RegisteredAgent; action: 'created' | 'updated' } {
-    const existing = this.agents.get(card.agent_id);
+    const existing = this.agents.get(card.agentId);
     const now = new Date().toISOString();
 
     if (existing) {
@@ -14,7 +14,7 @@ export class AgentRegistry {
         status: 'online',
         lastSeenAt: now,
       };
-      this.agents.set(card.agent_id, updated);
+      this.agents.set(card.agentId, updated);
       return { agent: updated, action: 'updated' };
     }
 
@@ -24,7 +24,7 @@ export class AgentRegistry {
       registeredAt: now,
       lastSeenAt: now,
     };
-    this.agents.set(card.agent_id, agent);
+    this.agents.set(card.agentId, agent);
     return { agent, action: 'created' };
   }
 
@@ -37,7 +37,7 @@ export class AgentRegistry {
       ...agent,
       status: options?.forceOffline ? 'offline' : agent.status,
     };
-    this.agents.set(agent.agent_id, restored);
+    this.agents.set(agent.agentId, restored);
   }
 
   get(agentId: string): RegisteredAgent | undefined {

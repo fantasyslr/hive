@@ -31,24 +31,24 @@ describe('POST /events — agent event publishing', () => {
 
   it('registered online agent can publish a whitelisted event', () => {
     reg.register({
-      agent_id: 'agent-1', name: 'A1', capabilities: ['x'],
+      agentId: 'agent-1', name: 'A1', capabilities: ['x'],
       interests: [], endpoint: 'http://localhost:4000',
     });
     const emitted: any[] = [];
     bus.on('task.updated', (e) => emitted.push(e));
 
-    const req = mockReq({ agent_id: 'agent-1', type: 'task.updated', data: { foo: 'bar' } });
+    const req = mockReq({ agentId: 'agent-1', type: 'task.updated', data: { foo: 'bar' } });
     const res = mockRes();
     handler(req, res);
 
     expect(res.statusCode).toBe(201);
     expect(emitted).toHaveLength(1);
     expect(emitted[0].data.foo).toBe('bar');
-    expect(emitted[0].data.published_by).toBe('agent-1');
+    expect(emitted[0].data.publishedBy).toBe('agent-1');
   });
 
   it('rejects unregistered agent with 400', () => {
-    const req = mockReq({ agent_id: 'ghost', type: 'task.updated', data: {} });
+    const req = mockReq({ agentId: 'ghost', type: 'task.updated', data: {} });
     const res = mockRes();
     handler(req, res);
 
@@ -57,12 +57,12 @@ describe('POST /events — agent event publishing', () => {
 
   it('rejects offline agent with 400', () => {
     reg.register({
-      agent_id: 'agent-2', name: 'A2', capabilities: ['x'],
+      agentId: 'agent-2', name: 'A2', capabilities: ['x'],
       interests: [], endpoint: 'http://localhost:4001',
     });
     reg.markOffline('agent-2');
 
-    const req = mockReq({ agent_id: 'agent-2', type: 'task.updated', data: {} });
+    const req = mockReq({ agentId: 'agent-2', type: 'task.updated', data: {} });
     const res = mockRes();
     handler(req, res);
 
@@ -71,11 +71,11 @@ describe('POST /events — agent event publishing', () => {
 
   it('rejects non-whitelisted event type with 400', () => {
     reg.register({
-      agent_id: 'agent-1', name: 'A1', capabilities: ['x'],
+      agentId: 'agent-1', name: 'A1', capabilities: ['x'],
       interests: [], endpoint: 'http://localhost:4000',
     });
 
-    const req = mockReq({ agent_id: 'agent-1', type: 'hacked.event', data: {} });
+    const req = mockReq({ agentId: 'agent-1', type: 'hacked.event', data: {} });
     const res = mockRes();
     handler(req, res);
 
@@ -84,12 +84,12 @@ describe('POST /events — agent event publishing', () => {
 
   it('rejects reserved lifecycle events (task.completed, agent.online, etc.)', () => {
     reg.register({
-      agent_id: 'agent-1', name: 'A1', capabilities: ['x'],
+      agentId: 'agent-1', name: 'A1', capabilities: ['x'],
       interests: [], endpoint: 'http://localhost:4000',
     });
 
     for (const reserved of ['task.assigned', 'task.completed', 'task.failed', 'agent.online', 'agent.offline']) {
-      const req = mockReq({ agent_id: 'agent-1', type: reserved, data: {} });
+      const req = mockReq({ agentId: 'agent-1', type: reserved, data: {} });
       const res = mockRes();
       handler(req, res);
       expect(res.statusCode).toBe(400);

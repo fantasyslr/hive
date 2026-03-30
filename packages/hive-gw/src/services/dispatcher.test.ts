@@ -7,7 +7,7 @@ import { TaskMachine } from './task-machine.js';
 
 function makeAgent(overrides: Partial<RegisteredAgent> = {}): RegisteredAgent {
   return {
-    agent_id: 'agent-1',
+    agentId: 'agent-1',
     name: 'Test Agent',
     capabilities: ['code'],
     interests: [],
@@ -42,8 +42,8 @@ describe('scoreAgent', () => {
     const task = makeTask({ requiredCapabilities: ['code'] });
     const loadMap = new Map<string, number>();
 
-    const matched = makeAgent({ agent_id: 'a1', capabilities: ['code'], interests: ['code'] });
-    const unmatched = makeAgent({ agent_id: 'a2', capabilities: ['code'], interests: [] });
+    const matched = makeAgent({ agentId: 'a1', capabilities: ['code'], interests: ['code'] });
+    const unmatched = makeAgent({ agentId: 'a2', capabilities: ['code'], interests: [] });
 
     const s1 = scoreAgent(matched, task, loadMap);
     const s2 = scoreAgent(unmatched, task, loadMap);
@@ -71,9 +71,9 @@ describe('scoreAgent', () => {
       ['a3', 1],
     ]);
 
-    const a1 = makeAgent({ agent_id: 'a1', capabilities: ['code'], interests: ['code'] });
-    const a2 = makeAgent({ agent_id: 'a2', capabilities: ['code'], interests: ['code'] });
-    const a3 = makeAgent({ agent_id: 'a3', capabilities: ['code'], interests: ['code'] });
+    const a1 = makeAgent({ agentId: 'a1', capabilities: ['code'], interests: ['code'] });
+    const a2 = makeAgent({ agentId: 'a2', capabilities: ['code'], interests: ['code'] });
+    const a3 = makeAgent({ agentId: 'a3', capabilities: ['code'], interests: ['code'] });
 
     const s1 = scoreAgent(a1, task, loadMap);
     const s2 = scoreAgent(a2, task, loadMap);
@@ -91,8 +91,8 @@ describe('scoreAgent', () => {
       ['idle', 0],       // no load -> load score 30
     ]);
 
-    const interested = makeAgent({ agent_id: 'interested', capabilities: ['code'], interests: ['code'] });
-    const idle = makeAgent({ agent_id: 'idle', capabilities: ['code'], interests: [] });
+    const interested = makeAgent({ agentId: 'interested', capabilities: ['code'], interests: ['code'] });
+    const idle = makeAgent({ agentId: 'idle', capabilities: ['code'], interests: [] });
 
     const s1 = scoreAgent(interested, task, loadMap);
     const s2 = scoreAgent(idle, task, loadMap);
@@ -123,7 +123,7 @@ describe('Dispatcher', () => {
   });
 
   it('findBestAgent returns null when no online agents have required capabilities', () => {
-    registry.register({ agent_id: 'a1', name: 'A1', capabilities: ['design'], interests: [], endpoint: 'http://localhost:3001' });
+    registry.register({ agentId: 'a1', name: 'A1', capabilities: ['design'], interests: [], endpoint: 'http://localhost:3001' });
 
     const task = makeTask({ requiredCapabilities: ['code'] });
     const result = dispatcher.findBestAgent(task.requiredCapabilities, task);
@@ -131,8 +131,8 @@ describe('Dispatcher', () => {
   });
 
   it('findBestAgent falls back to capability-only when no interest matches', () => {
-    registry.register({ agent_id: 'a1', name: 'A1', capabilities: ['code'], interests: ['design'], endpoint: 'http://localhost:3001' });
-    registry.register({ agent_id: 'a2', name: 'A2', capabilities: ['code'], interests: ['writing'], endpoint: 'http://localhost:3002' });
+    registry.register({ agentId: 'a1', name: 'A1', capabilities: ['code'], interests: ['design'], endpoint: 'http://localhost:3001' });
+    registry.register({ agentId: 'a2', name: 'A2', capabilities: ['code'], interests: ['writing'], endpoint: 'http://localhost:3002' });
 
     const task = makeTask({ requiredCapabilities: ['code'], title: 'Review PR' });
     const result = dispatcher.findBestAgent(task.requiredCapabilities, task);
@@ -143,7 +143,7 @@ describe('Dispatcher', () => {
   });
 
   it('autoAssign claims task and returns assigned task+agent', () => {
-    registry.register({ agent_id: 'a1', name: 'A1', capabilities: ['code'], interests: ['code'], endpoint: 'http://localhost:3001' });
+    registry.register({ agentId: 'a1', name: 'A1', capabilities: ['code'], interests: ['code'], endpoint: 'http://localhost:3001' });
 
     const task = taskMachine.create({ title: 'Code task', description: 'desc', requiredCapabilities: ['code'], createdBy: 'user-1' });
     const result = dispatcher.autoAssign(task);
@@ -151,7 +151,7 @@ describe('Dispatcher', () => {
     expect(result).not.toBeNull();
     expect(result!.task.status).toBe('claimed');
     expect(result!.task.assignee).toBe('a1');
-    expect(result!.agent.agent_id).toBe('a1');
+    expect(result!.agent.agentId).toBe('a1');
   });
 });
 
@@ -162,7 +162,7 @@ function mockTimeAgo(ms: number): string {
 
 describe('scoreAgent — starvation boost', () => {
   it('agent idle > 60s gets starvation boost', () => {
-    const agent = makeAgent({ agent_id: 'starved', capabilities: ['code'], interests: [] });
+    const agent = makeAgent({ agentId: 'starved', capabilities: ['code'], interests: [] });
     const task = makeTask({ requiredCapabilities: ['code'] });
     const loadMap = new Map<string, number>();
     const lastAssignedAt = mockTimeAgo(STARVATION_THRESHOLD_MS + 1000); // 61s ago
@@ -173,7 +173,7 @@ describe('scoreAgent — starvation boost', () => {
   });
 
   it('agent idle < 60s gets 0 starvation boost', () => {
-    const agent = makeAgent({ agent_id: 'recent', capabilities: ['code'], interests: [] });
+    const agent = makeAgent({ agentId: 'recent', capabilities: ['code'], interests: [] });
     const task = makeTask({ requiredCapabilities: ['code'] });
     const loadMap = new Map<string, number>();
     const lastAssignedAt = mockTimeAgo(STARVATION_THRESHOLD_MS - 10_000); // 50s ago
@@ -187,18 +187,18 @@ describe('scoreAgent — starvation boost', () => {
     const loadMap = new Map<string, number>([['busy', 3]]);
 
     // Interest-matched but busy: interest=50, cap=20, load=0 => 70
-    const busy = makeAgent({ agent_id: 'busy', capabilities: ['code'], interests: ['code'] });
+    const busy = makeAgent({ agentId: 'busy', capabilities: ['code'], interests: ['code'] });
     const busyScore = scoreAgent(busy, task, loadMap);
 
     // Starved niche agent: interest=0, cap=20, load=30, starvation=40 => 90
-    const niche = makeAgent({ agent_id: 'niche', capabilities: ['code'], interests: ['design'] });
+    const niche = makeAgent({ agentId: 'niche', capabilities: ['code'], interests: ['design'] });
     const nicheScore = scoreAgent(niche, task, loadMap, { lastAssignedAt: mockTimeAgo(120_000), hasActiveTasks: false });
 
     expect(nicheScore.total).toBeGreaterThan(busyScore.total);
   });
 
   it('agent with active tasks gets 0 starvation boost regardless of idle time', () => {
-    const agent = makeAgent({ agent_id: 'active', capabilities: ['code'], interests: [] });
+    const agent = makeAgent({ agentId: 'active', capabilities: ['code'], interests: [] });
     const task = makeTask({ requiredCapabilities: ['code'] });
     const loadMap = new Map<string, number>();
     const lastAssignedAt = mockTimeAgo(STARVATION_THRESHOLD_MS + 5000); // 65s ago
@@ -212,7 +212,7 @@ describe('scoreAgent — starvation boost', () => {
     const taskMachine = new TaskMachine();
     const dispatcher = new Dispatcher(registry, taskMachine);
 
-    registry.register({ agent_id: 'a1', name: 'A1', capabilities: ['code'], interests: [], endpoint: 'http://localhost:3001' });
+    registry.register({ agentId: 'a1', name: 'A1', capabilities: ['code'], interests: [], endpoint: 'http://localhost:3001' });
 
     const task = taskMachine.create({ title: 'Task 1', description: 'desc', requiredCapabilities: ['code'], createdBy: 'user-1' });
     const result = dispatcher.autoAssign(task);

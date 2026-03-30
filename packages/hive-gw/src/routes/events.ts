@@ -17,19 +17,19 @@ export function createEventPublishHandler(bus: EventBus, reg: AgentRegistry) {
       return;
     }
 
-    const { agent_id, type, data } = parsed.data;
-    const agent = reg.get(agent_id);
+    const { agentId, type, data } = parsed.data;
+    const agent = reg.get(agentId);
     if (!agent || agent.status !== 'online') {
-      res.status(400).json({ error: `Agent ${agent_id} not found or offline` });
+      res.status(400).json({ error: `Agent ${agentId} not found or offline` });
       return;
     }
 
     const event = bus.emit({
       type: type as HiveEventType,
-      data: { ...data, published_by: agent_id },
+      data: { ...data, publishedBy: agentId },
     });
 
-    res.status(201).json({ event_id: event.id });
+    res.status(201).json({ eventId: event.id });
   };
 }
 
@@ -39,9 +39,9 @@ export const eventsRouter = Router();
 eventsRouter.post('/', createEventPublishHandler(eventBus, registry));
 
 eventsRouter.get('/stream', async (req, res) => {
-  const agentId = req.query.agent_id as string | undefined;
+  const agentId = req.query.agentId as string | undefined;
   if (!agentId) {
-    res.status(400).json({ error: 'agent_id query parameter is required' });
+    res.status(400).json({ error: 'agentId query parameter is required' });
     return;
   }
 
@@ -71,7 +71,7 @@ eventsRouter.get('/stream', async (req, res) => {
   // Track heartbeat
   registerHeartbeat(agentId);
   if (restored) {
-    eventBus.emit({ type: 'agent.online', data: { agent_id: agentId, reason: 'sse_restored' } });
+    eventBus.emit({ type: 'agent.online', data: { agentId, reason: 'sse_restored' } });
   }
 
   logger.info({ agentId }, 'SSE connection established');
@@ -82,7 +82,7 @@ eventsRouter.get('/stream', async (req, res) => {
   });
 });
 
-// Public SSE stream — no agent_id required, read-only board observation
+// Public SSE stream — no agentId required, read-only board observation
 eventsRouter.get('/stream/public', async (req, res) => {
   const session = await createSession(req, res, {
     keepAlive: HEARTBEAT_INTERVAL_MS,

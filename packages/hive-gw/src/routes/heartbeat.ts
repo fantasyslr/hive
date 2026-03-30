@@ -25,10 +25,10 @@ function markAgentOffline(agentId: string, silenceMs: number): void {
     eventBus.emit({
       type: 'task.updated',
       data: {
-        task_id: task.id,
+        taskId: task.id,
         status: 'pending',
-        previous_status: 'claimed',
-        released_from_agent_id: agentId,
+        previousStatus: 'claimed',
+        releasedFromAgentId: agentId,
         reason: 'assignee_offline',
         version: task.version,
       },
@@ -37,7 +37,7 @@ function markAgentOffline(agentId: string, silenceMs: number): void {
 
   eventBus.emit({
     type: 'agent.offline',
-    data: { agent_id: agentId, reason: 'heartbeat_timeout' },
+    data: { agentId, reason: 'heartbeat_timeout' },
   });
   logger.warn(
     { agentId, silenceMs, releasedClaimedTasks: releasedTasks.map((task) => task.id) },
@@ -55,7 +55,7 @@ heartbeatRouter.post('/:agentId', (req, res) => {
 
   heartbeats.set(agentId, Date.now());
   if (restored) {
-    eventBus.emit({ type: 'agent.online', data: { agent_id: agentId, reason: 'heartbeat_restored' } });
+    eventBus.emit({ type: 'agent.online', data: { agentId, reason: 'heartbeat_restored' } });
     logger.info({ agentId }, 'Agent restored to online via heartbeat');
   }
   res.status(204).end();

@@ -39,12 +39,12 @@ describe('TaskMachine', () => {
     const withExplicitRefs = taskMachine.setOutputRefs(task.id, ['mem://explicit'])!;
     expect(withExplicitRefs.version).toBe(working.version + 1);
     expect(withExplicitRefs.updatedAt).not.toBe(working.updatedAt);
-    expect(withExplicitRefs.output_refs).toEqual(['mem://explicit']);
+    expect(withExplicitRefs.outputRefs).toEqual(['mem://explicit']);
 
     await new Promise((resolve) => setTimeout(resolve, 5));
     const withAppendedRefs = taskMachine.appendOutputRefs(task.id, ['mem://derived'])!;
     expect(withAppendedRefs.version).toBe(withExplicitRefs.version + 1);
     expect(withAppendedRefs.updatedAt).not.toBe(withExplicitRefs.updatedAt);
-    expect(withAppendedRefs.output_refs).toEqual(['mem://explicit', 'mem://derived']);
+    expect(withAppendedRefs.outputRefs).toEqual(['mem://explicit', 'mem://derived']);
   });
 });

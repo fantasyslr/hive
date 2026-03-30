@@ -71,11 +71,11 @@ export class MemoryService {
 
     const namespace = `${MEMORY_NAMESPACES.PUBLIC_CONCLUSIONS}/${task.id}`;
     const conclusion: MemoryConclusion = {
-      task_id: task.id,
-      agent_id: task.assignee ?? 'unknown',
+      taskId: task.id,
+      agentId: task.assignee ?? 'unknown',
       conclusion: task.result ?? '',
-      decision_reason: '',
-      impact_scope: '',
+      decisionReason: '',
+      impactScope: '',
       timestamp: new Date().toISOString(),
       namespace,
     };
@@ -88,7 +88,7 @@ export class MemoryService {
 
       this.bus.emit({
         type: 'memory.updated',
-        data: { namespace: MEMORY_NAMESPACES.PUBLIC_CONCLUSIONS, task_id: task.id },
+        data: { namespace: MEMORY_NAMESPACES.PUBLIC_CONCLUSIONS, taskId: task.id },
       });
 
       const ref = `mem://${namespace}`;
@@ -108,8 +108,8 @@ export class MemoryService {
     try {
       await this.client.callTool(this.toolNames.add, {
         content: JSON.stringify({
-          task_id: task.id,
-          agent_id: agentId,
+          taskId: task.id,
+          agentId: agentId,
           status: task.status,
           result: task.result,
           error: task.error,
@@ -158,24 +158,24 @@ export class MemoryService {
 
   registerHooks(): void {
     this.bus.on('task.completed', (event) => {
-      const task = this.tasks.get(event.data.task_id as string);
+      const task = this.tasks.get(event.data.taskId as string);
       if (!task || !task.assignee) return;
 
       // Fire and forget — do not await in emit path
       this.writeConclusion(task)
         .then((ref) => {
           if (ref) {
-            // APPEND to existing output_refs (do not replace — PATCH route may also set refs)
+            // APPEND to existing outputRefs (do not replace — PATCH route may also set refs)
             const updated = this.tasks.appendOutputRefs(task.id, [ref]);
             if (updated) {
               this.bus.emit({
                 type: 'task.updated',
                 data: {
-                  task_id: updated.id,
-                  agent_id: updated.assignee,
+                  taskId: updated.id,
+                  agentId: updated.assignee,
                   status: updated.status,
                   version: updated.version,
-                  output_refs: updated.output_refs ?? [],
+                  outputRefs: updated.outputRefs ?? [],
                 },
               });
             }
@@ -189,7 +189,7 @@ export class MemoryService {
     });
 
     this.bus.on('task.failed', (event) => {
-      const task = this.tasks.get(event.data.task_id as string);
+      const task = this.tasks.get(event.data.taskId as string);
       if (!task || !task.assignee) return;
 
       // Fire and forget

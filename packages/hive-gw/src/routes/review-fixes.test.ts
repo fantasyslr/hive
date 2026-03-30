@@ -72,14 +72,14 @@ describe.sequential('review fixes', () => {
       let response = await fetch(`${baseUrl}/tasks/${task.id}/claim`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agent_id: 'missing-agent', version: task.version }),
+        body: JSON.stringify({ agentId: 'missing-agent', version: task.version }),
       });
 
       expect(response.status).toBe(400);
       expect(await response.json()).toEqual({ error: 'Agent missing-agent not found or offline' });
 
       registry.register({
-        agent_id: 'offline-agent',
+        agentId: 'offline-agent',
         name: 'Offline Agent',
         capabilities: ['code'],
         interests: [],
@@ -90,7 +90,7 @@ describe.sequential('review fixes', () => {
       response = await fetch(`${baseUrl}/tasks/${task.id}/claim`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agent_id: 'offline-agent', version: task.version }),
+        body: JSON.stringify({ agentId: 'offline-agent', version: task.version }),
       });
 
       expect(response.status).toBe(400);
@@ -111,7 +111,7 @@ describe.sequential('review fixes', () => {
 
     try {
       registry.register({
-        agent_id: 'agent-a',
+        agentId: 'agent-a',
         name: 'Agent A',
         capabilities: ['code'],
         interests: ['code'],
@@ -136,25 +136,25 @@ describe.sequential('review fixes', () => {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          agent_id: 'agent-a',
+          agentId: 'agent-a',
           version: working.version,
           status: 'done',
           result: 'done',
-          output_refs: ['mem://explicit'],
+          outputRefs: ['mem://explicit'],
         }),
       });
 
       expect(response.status).toBe(200);
       const body = await response.json();
-      expect(body.output_refs).toEqual(['mem://explicit']);
+      expect(body.outputRefs).toEqual(['mem://explicit']);
       expect(body.version).toBe(working.version + 2);
-      expect(taskMachine.get(task.id)?.output_refs).toEqual(['mem://explicit']);
+      expect(taskMachine.get(task.id)?.outputRefs).toEqual(['mem://explicit']);
       expect(completedEvents).toHaveLength(1);
       expect(completedEvents[0].data).toMatchObject({
-        task_id: task.id,
-        agent_id: 'agent-a',
+        taskId: task.id,
+        agentId: 'agent-a',
         version: body.version,
-        output_refs: ['mem://explicit'],
+        outputRefs: ['mem://explicit'],
         result: 'done',
       });
     } finally {
@@ -177,7 +177,7 @@ describe.sequential('review fixes', () => {
       eventBus.on('agent.online', handler);
 
       registry.register({
-        agent_id: 'agent-heartbeat',
+        agentId: 'agent-heartbeat',
         name: 'Agent Heartbeat',
         capabilities: ['code'],
         interests: [],
@@ -191,7 +191,7 @@ describe.sequential('review fixes', () => {
       expect(getHeartbeatLastSeen('agent-heartbeat')).toBeTypeOf('number');
       expect(onlineEvents).toHaveLength(1);
       expect(onlineEvents[0].data).toMatchObject({
-        agent_id: 'agent-heartbeat',
+        agentId: 'agent-heartbeat',
         reason: 'heartbeat_restored',
       });
 
@@ -214,7 +214,7 @@ describe.sequential('review fixes', () => {
     eventBus.on('task.updated', updatedHandler);
 
     registry.register({
-      agent_id: 'reclaim-agent',
+      agentId: 'reclaim-agent',
       name: 'Reclaim Agent',
       capabilities: ['research'],
       interests: [],
@@ -258,16 +258,16 @@ describe.sequential('review fixes', () => {
 
     expect(updatedEvents).toHaveLength(1);
     expect(updatedEvents[0].data).toMatchObject({
-      task_id: claimed.id,
+      taskId: claimed.id,
       status: 'pending',
-      previous_status: 'claimed',
-      released_from_agent_id: 'reclaim-agent',
+      previousStatus: 'claimed',
+      releasedFromAgentId: 'reclaim-agent',
       reason: 'assignee_offline',
     });
 
     expect(offlineEvents).toHaveLength(1);
     expect(offlineEvents[0].data).toMatchObject({
-      agent_id: 'reclaim-agent',
+      agentId: 'reclaim-agent',
       reason: 'heartbeat_timeout',
     });
   });
@@ -280,7 +280,7 @@ describe.sequential('review fixes', () => {
     const { baseUrl, close } = await startServer(app);
 
     try {
-      const response = await fetch(`${baseUrl}/events/stream?agent_id=missing-agent`);
+      const response = await fetch(`${baseUrl}/events/stream?agentId=missing-agent`);
       expect(response.status).toBe(400);
       expect(await response.json()).toEqual({ error: 'Agent missing-agent not registered' });
     } finally {
@@ -294,7 +294,7 @@ describe.sequential('review fixes', () => {
     app.use(errorHandler);
 
     registry.register({
-      agent_id: 'stream-agent',
+      agentId: 'stream-agent',
       name: 'Stream Agent',
       capabilities: ['research'],
       interests: [],
@@ -304,7 +304,7 @@ describe.sequential('review fixes', () => {
     const { baseUrl, close } = await startServer(app);
 
     try {
-      const response = await fetch(`${baseUrl}/events/stream?agent_id=stream-agent`);
+      const response = await fetch(`${baseUrl}/events/stream?agentId=stream-agent`);
       expect(response.status).toBe(200);
       expect(getHeartbeatLastSeen('stream-agent')).toBeTypeOf('number');
       response.body?.cancel();

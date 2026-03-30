@@ -10,14 +10,14 @@ const MAX_VERIFY_FAILURES = 2; // after this many fix cycles, stop auto-creating
  * verify/fix sub-tasks when orchestration fields indicate it.
  *
  * Rules:
- * - task.completed + verification_required → create verify sub-task
- * - task.completed + task_kind === 'fix' → create re-verify sub-task
- * - task.failed + task_kind === 'verify' → create fix sub-task (up to MAX_VERIFY_FAILURES)
+ * - task.completed + verificationRequired → create verify sub-task
+ * - task.completed + taskKind === 'fix' → create re-verify sub-task
+ * - task.failed + taskKind === 'verify' → create fix sub-task (up to MAX_VERIFY_FAILURES)
  */
 export class VerifyLoop {
   private tm: TaskMachine;
   private bus: EventBus;
-  private verifyFailureCount = new Map<string, number>(); // run_id → failure count
+  private verifyFailureCount = new Map<string, number>(); // runId → failure count
 
   constructor(tm: TaskMachine, bus: EventBus) {
     this.tm = tm;
@@ -26,13 +26,13 @@ export class VerifyLoop {
 
   registerHooks(): void {
     this.bus.on('task.completed', (event) => {
-      const task = this.tm.get(event.data.task_id as string);
+      const task = this.tm.get(event.data.taskId as string);
       if (!task) return;
       this.onTaskCompleted(task);
     });
 
     this.bus.on('task.failed', (event) => {
-      const task = this.tm.get(event.data.task_id as string);
+      const task = this.tm.get(event.data.taskId as string);
       if (!task) return;
       this.onTaskFailed(task);
     });
@@ -41,14 +41,14 @@ export class VerifyLoop {
   }
 
   private onTaskCompleted(task: Task): void {
-    // Case 1: execute/custom task with verification_required → create verify
-    if (task.verification_required && task.task_kind !== 'verify' && task.task_kind !== 'fix') {
+    // Case 1: execute/custom task with verificationRequired → create verify
+    if (task.verificationRequired && task.taskKind !== 'verify' && task.taskKind !== 'fix') {
       this.createVerifyTask(task);
       return;
     }
 
     // Case 2: fix task completed → create re-verify
-    if (task.task_kind === 'fix') {
+    if (task.taskKind === 'fix') {
       this.createVerifyTask(task);
       return;
     }
@@ -56,9 +56,9 @@ export class VerifyLoop {
 
   private onTaskFailed(task: Task): void {
     // Only auto-create fix for verify task failures
-    if (task.task_kind !== 'verify') return;
+    if (task.taskKind !== 'verify') return;
 
-    const runId = task.run_id ?? task.parent_task_id ?? task.id;
+    const runId = task.runId ?? task.parentTaskId ?? task.id;
     const failures = (this.verifyFailureCount.get(runId) ?? 0) + 1;
     this.verifyFailureCount.set(runId, failures);
 
@@ -67,10 +67,10 @@ export class VerifyLoop {
       this.bus.emit({
         type: 'task.updated',
         data: {
-          task_id: task.id,
+          taskId: task.id,
           action: 'escalate',
           reason: `Verify failed ${failures} times, max ${MAX_VERIFY_FAILURES} fix cycles reached`,
-          run_id: runId,
+          runId: runId,
         },
       });
       return;
@@ -85,38 +85,38 @@ export class VerifyLoop {
       description: `Verify the output of task ${parentTask.id}. Result: ${parentTask.result ?? 'N/A'}`,
       requiredCapabilities: parentTask.requiredCapabilities,
       createdBy: 'verify-loop',
-      task_kind: 'verify',
-      parent_task_id: parentTask.id,
-      run_id: parentTask.run_id,
-      context_ref: `task://${parentTask.id}`,
+      taskKind: 'verify',
+      parentTaskId: parentTask.id,
+      runId: parentTask.runId,
+      contextRef: `task://${parentTask.id}`,
     });
 
     logger.info({ parentTaskId: parentTask.id, verifyTaskId: verifyTask.id }, 'Auto-created verify sub-task');
 
     this.bus.emit({
       type: 'task.assigned',
-      data: { task_id: verifyTask.id, action: 'auto_verify', parent_task_id: parentTask.id },
+      data: { taskId: verifyTask.id, action: 'auto_verify', parentTaskId: parentTask.id },
     });
   }
 
   private createFixTask(verifyTask: Task): void {
     const fixTask = this.tm.create({
       title: `Fix: ${verifyTask.title.replace('Verify: ', '')}`,
-      description: `Fix issues found during verification of task ${verifyTask.parent_task_id}. Error: ${verifyTask.error ?? 'N/A'}`,
+      description: `Fix issues found during verification of task ${verifyTask.parentTaskId}. Error: ${verifyTask.error ?? 'N/A'}`,
       requiredCapabilities: verifyTask.requiredCapabilities,
       createdBy: 'verify-loop',
-      task_kind: 'fix',
-      parent_task_id: verifyTask.id,
-      run_id: verifyTask.run_id,
-      verification_required: true, // fix completion triggers re-verify
-      context_ref: `task://${verifyTask.id}`,
+      taskKind: 'fix',
+      parentTaskId: verifyTask.id,
+      runId: verifyTask.runId,
+      verificationRequired: true, // fix completion triggers re-verify
+      contextRef: `task://${verifyTask.id}`,
     });
 
     logger.info({ verifyTaskId: verifyTask.id, fixTaskId: fixTask.id }, 'Auto-created fix sub-task');
 
     this.bus.emit({
       type: 'task.assigned',
-      data: { task_id: fixTask.id, action: 'auto_fix', parent_task_id: verifyTask.id },
+      data: { taskId: fixTask.id, action: 'auto_fix', parentTaskId: verifyTask.id },
     });
   }
 }

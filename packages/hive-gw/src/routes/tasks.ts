@@ -20,9 +20,9 @@ tasksRouter.post('/', validate(CreateTaskSchema), (req, res) => {
   if (result) {
     eventBus.emit({
       type: 'task.assigned',
-      data: { task_id: result.task.id, agent_id: result.agent.agent_id, title: result.task.title },
+      data: { taskId: result.task.id, agentId: result.agent.agentId, title: result.task.title },
     });
-    res.status(201).json({ ...result.task, autoAssignedTo: result.agent.agent_id });
+    res.status(201).json({ ...result.task, autoAssignedTo: result.agent.agentId });
     return;
   }
 
@@ -52,53 +52,53 @@ tasksRouter.get('/:id/routing-score', (req, res) => {
   // Enrich scores (includes starvation field) with lastAssignedAt for observability
   const enriched = scores.map(s => ({
     ...s,
-    lastAssignedAt: dispatcher.getLastAssigned(s.agent_id) ?? null,
+    lastAssignedAt: dispatcher.getLastAssigned(s.agentId) ?? null,
   }));
   res.json(enriched);
 });
 
 tasksRouter.post('/:id/claim', validate(ClaimTaskSchema), (req, res) => {
   const taskId = req.params.id as string;
-  const { agent_id, version } = req.body as { agent_id: string; version: number };
-  const agent = registry.get(agent_id);
+  const { agentId, version } = req.body as { agentId: string; version: number };
+  const agent = registry.get(agentId);
   if (!agent || agent.status !== 'online') {
-    res.status(400).json({ error: `Agent ${agent_id} not found or offline` });
+    res.status(400).json({ error: `Agent ${agentId} not found or offline` });
     return;
   }
-  const task = taskMachine.claim(taskId, agent_id, version);
+  const task = taskMachine.claim(taskId, agentId, version);
   eventBus.emit({
     type: 'task.assigned',
-    data: { task_id: task.id, agent_id },
+    data: { taskId: task.id, agentId },
   });
   res.json(task);
 });
 
 tasksRouter.post('/:id/reject', validate(ClaimTaskSchema), (req, res) => {
   const taskId = req.params.id as string;
-  const { agent_id, version } = req.body as { agent_id: string; version: number };
-  const task = taskMachine.reject(taskId, agent_id, version);
+  const { agentId, version } = req.body as { agentId: string; version: number };
+  const task = taskMachine.reject(taskId, agentId, version);
   eventBus.emit({
     type: 'task.updated',
-    data: { task_id: task.id, agent_id, action: 'rejected', status: 'pending' },
+    data: { taskId: task.id, agentId, action: 'rejected', status: 'pending' },
   });
   res.json(task);
 });
 
 tasksRouter.patch('/:id', validate(UpdateTaskSchema), (req, res) => {
   const taskId = req.params.id as string;
-  const { agent_id, version, status, result, error, output_refs } = req.body as {
-    agent_id: string;
+  const { agentId, version, status, result, error, outputRefs } = req.body as {
+    agentId: string;
     version: number;
     status: 'working' | 'done' | 'failed';
     result?: string | null;
     error?: string | null;
-    output_refs?: string[];
+    outputRefs?: string[];
   };
-  let task = taskMachine.transition(taskId, status, agent_id, version, { result, error });
+  let task = taskMachine.transition(taskId, status, agentId, version, { result, error });
 
-  // If agent explicitly provides output_refs, set them (replace semantics, bumps version)
-  if (output_refs) {
-    task = taskMachine.setOutputRefs(task.id, output_refs) ?? task;
+  // If agent explicitly provides outputRefs, set them (replace semantics, bumps version)
+  if (outputRefs) {
+    task = taskMachine.setOutputRefs(task.id, outputRefs) ?? task;
   }
 
   // Emit event based on new status
@@ -112,10 +112,10 @@ tasksRouter.patch('/:id', validate(UpdateTaskSchema), (req, res) => {
     eventBus.emit({
       type: eventType,
       data: {
-        task_id: task.id,
-        agent_id,
+        taskId: task.id,
+        agentId,
         version: task.version,
-        output_refs: task.output_refs ?? [],
+        outputRefs: task.outputRefs ?? [],
         ...(status === 'done' && { result: task.result }),
         ...(status === 'failed' && { error: task.error }),
         ...(status === 'working' && { status: 'working' }),
@@ -132,7 +132,7 @@ tasksRouter.post('/:id/retry', validate(RetryTaskSchema), (req, res) => {
   const task = taskMachine.retry(taskId, version);
   eventBus.emit({
     type: 'task.updated',
-    data: { task_id: task.id, status: 'pending', retry: true },
+    data: { taskId: task.id, status: 'pending', retry: true },
   });
 
   // Try auto-assign the retried task
@@ -140,9 +140,9 @@ tasksRouter.post('/:id/retry', validate(RetryTaskSchema), (req, res) => {
   if (result) {
     eventBus.emit({
       type: 'task.assigned',
-      data: { task_id: result.task.id, agent_id: result.agent.agent_id },
+      data: { taskId: result.task.id, agentId: result.agent.agentId },
     });
-    res.json({ ...result.task, autoAssignedTo: result.agent.agent_id });
+    res.json({ ...result.task, autoAssignedTo: result.agent.agentId });
     return;
   }
 
@@ -154,7 +154,7 @@ tasksRouter.delete('/:id', (req, res) => {
   const task = taskMachine.delete(taskId);
   eventBus.emit({
     type: 'task.updated',
-    data: { task_id: task.id, deleted: true, previous_status: task.status },
+    data: { taskId: task.id, deleted: true, previousStatus: task.status },
   });
   res.json({ deleted: true, task });
 });

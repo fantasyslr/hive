@@ -11,7 +11,7 @@ export const agentsRouter = Router();
 
 agentsRouter.post('/', validate(AgentRegistrationSchema), (req, res) => {
   const { agent, action } = registry.register(req.body);
-  eventBus.emit({ type: 'agent.online', data: { agent_id: agent.agent_id, name: agent.name } });
+  eventBus.emit({ type: 'agent.online', data: { agentId: agent.agentId, name: agent.name } });
   res.status(action === 'created' ? 201 : 200).json(agent);
 });
 
@@ -28,24 +28,24 @@ agentsRouter.get('/:agent_id', (req, res) => {
 /**
  * P2P proxy: forwards a request from one agent to another without the caller
  * needing to know the target agent's endpoint. The gateway acts as a thin relay
- * so agents can address each other by agent_id alone.
+ * so agents can address each other by agentId alone.
  *
  * POST /agents/:agent_id/request
- * Body: { from_agent_id, payload, timeout_ms? }
+ * Body: { fromAgentId, payload, timeoutMs? }
  */
 agentsRouter.post('/:agent_id/request', validate(P2PRequestSchema), async (req, res, next) => {
   try {
     const targetId = req.params.agent_id as string;
-    const { from_agent_id, payload, timeout_ms } = req.body as {
-      from_agent_id: string;
+    const { fromAgentId, payload, timeoutMs } = req.body as {
+      fromAgentId: string;
       payload: Record<string, unknown>;
-      timeout_ms?: number;
+      timeoutMs?: number;
     };
 
     // Validate source agent exists and is online
-    const sourceAgent = registry.get(from_agent_id);
+    const sourceAgent = registry.get(fromAgentId);
     if (!sourceAgent || sourceAgent.status !== 'online') {
-      throw new NotFoundError(`Source agent ${from_agent_id} not found or offline`);
+      throw new NotFoundError(`Source agent ${fromAgentId} not found or offline`);
     }
 
     // Validate target agent exists and is online
@@ -55,11 +55,11 @@ agentsRouter.post('/:agent_id/request', validate(P2PRequestSchema), async (req, 
     }
 
     const result: P2PResponse = await forwardP2PRequest({
-      from_agent_id,
-      to_agent_id: targetId,
+      fromAgentId,
+      toAgentId: targetId,
       endpoint: targetAgent.endpoint,
       payload,
-      timeout_ms: timeout_ms ?? 30_000,
+      timeoutMs: timeoutMs ?? 30_000,
     });
 
     res.json(result);
@@ -71,6 +71,6 @@ agentsRouter.post('/:agent_id/request', validate(P2PRequestSchema), async (req, 
 agentsRouter.delete('/:agent_id', (req, res) => {
   const removed = registry.remove(req.params.agent_id);
   if (!removed) throw new NotFoundError(`Agent ${req.params.agent_id} not found`);
-  eventBus.emit({ type: 'agent.offline', data: { agent_id: req.params.agent_id } });
+  eventBus.emit({ type: 'agent.offline', data: { agentId: req.params.agent_id } });
   res.status(204).end();
 });

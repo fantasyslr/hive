@@ -6,7 +6,7 @@ describe('AgentRegistry.restore', () => {
     const registry = new AgentRegistry();
 
     registry.restore({
-      agent_id: 'restored-agent',
+      agentId: 'restored-agent',
       name: 'Restored Agent',
       capabilities: ['research'],
       interests: [],
