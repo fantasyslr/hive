@@ -10,8 +10,8 @@
 - [ ] **MEM-05**: Memory search supports filtering by namespace, agent_id, and time range
 
 ### User Authentication
-- [ ] **AUTH-01**: Simple role-based user login (4 fixed users: 投放, 运营, 素材, 主管)
-- [ ] **AUTH-02**: API endpoints require auth token (Bearer token, no session)
+- [x] **AUTH-01**: Simple role-based user login (4 fixed users: 投放, 运营, 素材, 主管)
+- [x] **AUTH-02**: API endpoints require auth token (Bearer token, no session)
 - [ ] **AUTH-03**: Board and task visibility scoped by role (主管 sees all, others see own + shared)
 
 ### Task Templates
@@ -43,8 +43,8 @@
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
 | API-01 | Phase 1 | Pending |
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
+| AUTH-01 | Phase 1 | Complete |
+| AUTH-02 | Phase 1 | Complete |
 | AUTH-03 | Phase 1 | Pending |
 | MEM-01 | Phase 2 | Pending |
 | MEM-02 | Phase 2 | Pending |
