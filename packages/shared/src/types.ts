@@ -43,6 +43,30 @@ export interface Task {
   retryCount?: number;        // incremented on each retry, defaults to 0
 }
 
+export interface MemoryRecord {
+  id: string;
+  title: string;
+  content: string;
+  namespace: string;
+  agentId?: string;
+  taskId?: string;
+  expiresAt?: string;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SearchHit extends MemoryRecord {
+  score: number;
+}
+
+export interface SearchFilter {
+  namespace?: string;
+  agentId?: string;
+  after?: string;
+  before?: string;
+}
+
 export interface MemoryConclusion {
   taskId: string;
   agentId: string;

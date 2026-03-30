@@ -5,6 +5,7 @@
   "main": "./src/server.ts",
   "types": "./src/server.ts",
   "dependencies": {
+    "@hive/shared": "*",
     "@modelcontextprotocol/sdk": "^1.28.0",
     "zod": "^4.3.6"
   }
