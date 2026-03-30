@@ -1,0 +1,48 @@
+import type { Task } from '../lib/types';
+
+interface TaskCardProps {
+  task: Task;
+  onClick: () => void;
+}
+
+const kindColors: Record<string, string> = {
+  plan: 'bg-purple-100 text-purple-700',
+  execute: 'bg-blue-100 text-blue-700',
+  verify: 'bg-teal-100 text-teal-700',
+  fix: 'bg-orange-100 text-orange-700',
+  review: 'bg-indigo-100 text-indigo-700',
+  explore: 'bg-cyan-100 text-cyan-700',
+  custom: 'bg-slate-100 text-slate-600',
+};
+
+export function TaskCard({ task, onClick }: TaskCardProps) {
+  const kindClass = kindColors[task.task_kind || 'custom'] || kindColors.custom;
+
+  return (
+    <button
+      onClick={onClick}
+      className="w-full cursor-pointer rounded-lg border border-slate-200 bg-white p-3 text-left shadow-sm transition hover:shadow-md"
+    >
+      <p className="mb-1 text-sm font-medium text-slate-800 line-clamp-2">
+        {task.title}
+      </p>
+
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {task.task_kind && (
+          <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${kindClass}`}>
+            {task.task_kind}
+          </span>
+        )}
+        {task.verification_required && (
+          <span className="text-[10px] text-amber-600" title="Verification required">
+            &#x1f6e1;
+          </span>
+        )}
+      </div>
+
+      <p className="mt-1.5 text-xs text-slate-400">
+        {task.assignee || 'Unassigned'}
+      </p>
+    </button>
+  );
+}

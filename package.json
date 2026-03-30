@@ -21,7 +21,9 @@
     "worker:claude": "bash scripts/start-worker-profile.sh claude",
     "cleanup": "bash scripts/cleanup-state.sh",
     "discover-mem": "tsx scripts/discover-mem-tools.ts",
-    "stress-test-mem": "tsx scripts/stress-test-mem.ts"
+    "stress-test-mem": "tsx scripts/stress-test-mem.ts",
+    "dev:ui": "npm run dev -w packages/hive-ui",
+    "build:ui": "npm run build -w packages/hive-ui"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",

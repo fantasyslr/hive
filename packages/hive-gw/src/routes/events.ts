@@ -81,3 +81,30 @@ eventsRouter.get('/stream', async (req, res) => {
     logger.info({ agentId }, 'SSE connection closed');
   });
 });
+
+// Public SSE stream — no agent_id required, read-only board observation
+eventsRouter.get('/stream/public', async (req, res) => {
+  const session = await createSession(req, res, {
+    keepAlive: HEARTBEAT_INTERVAL_MS,
+  });
+
+  // Replay missed events if reconnecting
+  const lastEventId = req.headers['last-event-id'];
+  if (lastEventId) {
+    const missed = eventBus.getEventsAfter(Number(lastEventId));
+    for (const evt of missed) {
+      session.push(JSON.stringify(evt.data), evt.type, evt.id.toString());
+    }
+    logger.info({ replayed: missed.length }, 'Public SSE replayed missed events');
+  }
+
+  // Register with channel for future broadcasts
+  eventBus.getChannel().register(session);
+
+  logger.info('Public SSE connection established');
+
+  session.on('disconnected', () => {
+    eventBus.getChannel().deregister(session);
+    logger.info('Public SSE connection closed');
+  });
+});
