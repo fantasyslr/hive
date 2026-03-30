@@ -18,6 +18,7 @@ import { MemoryService } from './services/memory-service.js';
 import { BoardPersistence } from './services/board-persistence.js';
 import { VerifyLoop } from './services/verify-loop.js';
 import { errorHandler } from './middleware/error-handler.js';
+import { authMiddleware } from './middleware/auth.js';
 
 const app = express();
 
@@ -29,7 +30,19 @@ const boardPersistence = new BoardPersistence(memoryClient, eventBus, registry, 
 const verifyLoop = new VerifyLoop(taskMachine, eventBus);
 const memoryRouter = createMemoryRouter(memoryService);
 
-// Routes
+// Health check — unauthenticated (for load balancer / monitoring)
+app.get('/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    uptime: process.uptime(),
+    memoryReady: memoryService.isReady(),
+  });
+});
+
+// Auth middleware — all routes below require a valid Bearer token
+app.use(authMiddleware);
+
+// Routes (all protected)
 app.use('/agents', agentsRouter);
 app.use('/tasks', tasksRouter);
 app.use('/board', boardRouter);
@@ -43,15 +56,6 @@ if (feishuWebhookRouter) {
 }
 
 app.use('/', docsRouter);
-
-// Health check — includes memory status
-app.get('/health', (_req, res) => {
-  res.json({
-    status: 'ok',
-    uptime: process.uptime(),
-    memoryReady: memoryService.isReady(),
-  });
-});
 
 // Error handler (must be last)
 app.use(errorHandler);
