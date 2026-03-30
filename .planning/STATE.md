@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 status: verifying
 stopped_at: Completed 02-01-PLAN.md (memory store enhancement)
-last_updated: "2026-03-30T15:31:24.099Z"
+last_updated: "2026-03-30T15:31:32.770Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 3
@@ -78,6 +78,7 @@ Recent decisions affecting current work:
 - [Phase 02]: Content dedup uses embedding.score() (vector+token) with 0.85 threshold, only in namespaced entries
 - [Phase 02-memory-enhancement]: Types (MemoryRecord/SearchHit/SearchFilter) in @hive/shared for cross-package use
 - [Phase 02-memory-enhancement]: Dedup uses embedding.score() (combined similarity) not raw cosine; only active with non-empty namespace
+- [Phase 02-memory-enhancement]: ISO string TTL comparison instead of SQLite datetime() for consistency with app-layer timestamps
 
 ### Pending Todos
 
@@ -95,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T15:31:12.692Z
+Last session: 2026-03-30T15:31:32.768Z
 Stopped at: Completed 02-01-PLAN.md (memory store enhancement)
 Resume file: None

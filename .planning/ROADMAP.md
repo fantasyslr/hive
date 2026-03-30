@@ -47,7 +47,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Extend SQLite store with namespace column, agentId/taskId source tracking, TTL expiration, content dedup, and filtered search
+- [x] 02-01-PLAN.md — Extend SQLite store with namespace column, agentId/taskId source tracking, TTL expiration, content dedup, and filtered search
 - [ ] 02-02-PLAN.md — Wire new store features through MCP server tools, shared schemas, Gateway MemoryService, and search route
 
 ### Phase 3: Campaign Templates
