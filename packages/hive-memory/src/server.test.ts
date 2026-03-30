@@ -113,15 +113,16 @@ describe('Hive Memory MCP server', () => {
         content: 'task conclusion data',
         namespace: 'public/conclusions',
         agentId: 'agent-planner',
-        taskId: '00000000-0000-0000-0000-000000000001',
+        taskId: 'a0000000-0000-4000-8000-000000000001',
         ttlMs: 3600000,
       },
     });
 
+    expect(result.isError).toBeFalsy();
     const record = JSON.parse((result.content as Array<{ text: string }>)[0].text);
     expect(record.namespace).toBe('public/conclusions');
     expect(record.agentId).toBe('agent-planner');
-    expect(record.taskId).toBe('00000000-0000-0000-0000-000000000001');
+    expect(record.taskId).toBe('a0000000-0000-4000-8000-000000000001');
     expect(record.expiresAt).toBeDefined();
   });
 

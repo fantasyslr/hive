@@ -4,6 +4,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { createMcpExpressApp } from '@modelcontextprotocol/sdk/server/express.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { z } from 'zod/v4';
+import type { SearchFilter } from '@hive/shared';
 import { MemoryStore } from './store.js';
 
 export interface MemoryServerOptions {
@@ -20,29 +21,43 @@ export function createMemoryMcpServer(store: MemoryStore): McpServer {
   });
 
   server.registerTool('memory_add', {
-    description: 'Persist a memory record with optional title metadata.',
+    description: 'Persist a memory record with optional namespace, source tracking, and TTL.',
     inputSchema: {
       title: z.string().max(1024).optional(),
       content: z.string().min(1),
       metadata: z.record(z.string(), z.unknown()).optional(),
+      namespace: z.string().max(256).optional(),
+      agentId: z.string().max(128).optional(),
+      taskId: z.string().uuid().optional(),
+      ttlMs: z.number().int().min(1000).optional(),
     },
-  }, async ({ title, content, metadata }) => {
-    const record = store.add({ title, content, metadata });
+  }, async ({ title, content, metadata, namespace, agentId, taskId, ttlMs }) => {
+    const record = store.add({ title, content, metadata, namespace, agentId, taskId, ttlMs });
     return {
       content: [{ type: 'text', text: JSON.stringify(record) }],
     };
   });
 
   server.registerTool('memory_search', {
-    description: 'Search memory records by semantic similarity and title/path hints.',
+    description: 'Search memory records by semantic similarity with optional namespace, agent, and time range filters.',
     inputSchema: {
       query: z.string().min(1),
       limit: z.number().int().min(1).max(100).optional(),
       n_results: z.number().int().min(1).max(100).optional(),
+      namespace: z.string().max(256).optional(),
+      agentId: z.string().max(128).optional(),
+      after: z.string().datetime().optional(),
+      before: z.string().datetime().optional(),
     },
-  }, async ({ query, limit, n_results }) => {
+  }, async ({ query, limit, n_results, namespace, agentId, after, before }) => {
     const resolvedLimit = limit ?? n_results ?? 10;
-    const results = store.search(query, resolvedLimit);
+    const filter: SearchFilter = {};
+    if (namespace !== undefined) filter.namespace = namespace;
+    if (agentId !== undefined) filter.agentId = agentId;
+    if (after !== undefined) filter.after = after;
+    if (before !== undefined) filter.before = before;
+    const hasFilter = Object.keys(filter).length > 0;
+    const results = store.search(query, resolvedLimit, hasFilter ? filter : undefined);
     return {
       content: [{ type: 'text', text: JSON.stringify(results) }],
     };

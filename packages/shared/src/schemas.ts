@@ -42,7 +42,10 @@ export const UpdateTaskSchema = z.object({
 
 export const MemorySearchSchema = z.object({
   query: z.string().min(1).max(1024),
-  namespace: z.enum(['public', 'agent']).default('public'),
+  namespace: z.string().max(256).optional(),
+  agentId: z.string().max(128).optional(),
+  after: z.string().datetime().optional(),
+  before: z.string().datetime().optional(),
   limit: z.number().int().min(1).max(50).default(10),
 });
 
