@@ -158,4 +158,60 @@ describe('MemoryStore', () => {
     expect(results).toHaveLength(1);
     expect(results[0].title).toBe('public/board/snapshot');
   });
+
+  // --- Task 2: Content deduplication ---
+
+  it('deduplicates identical content in the same namespace', () => {
+    const store = makeStore();
+    const first = store.add({ namespace: 'ns', content: 'alpha beta' });
+    const second = store.add({ namespace: 'ns', content: 'alpha beta' });
+
+    // Should return the same id — updated, not inserted
+    expect(second.id).toBe(first.id);
+    expect(second.updatedAt).not.toBe(first.updatedAt);
+
+    // Only 1 entry should exist
+    const results = store.search('alpha beta', 10, { namespace: 'ns' });
+    expect(results).toHaveLength(1);
+  });
+
+  it('deduplicates highly similar content in the same namespace', () => {
+    const store = makeStore();
+    const first = store.add({ namespace: 'ns', content: 'alpha beta' });
+    const second = store.add({ namespace: 'ns', content: 'alpha beta gamma' });
+
+    // High similarity → should update existing
+    expect(second.id).toBe(first.id);
+
+    const results = store.search('alpha beta', 10, { namespace: 'ns' });
+    expect(results).toHaveLength(1);
+    expect(results[0].content).toBe('alpha beta gamma');
+  });
+
+  it('does not deduplicate across different namespaces', () => {
+    const store = makeStore();
+    const first = store.add({ namespace: 'ns1', content: 'alpha' });
+    const second = store.add({ namespace: 'ns2', content: 'alpha' });
+
+    // Different namespace → separate entries
+    expect(second.id).not.toBe(first.id);
+  });
+
+  it('does not deduplicate dissimilar content in the same namespace', () => {
+    const store = makeStore();
+    const first = store.add({ namespace: 'ns', content: 'alpha beta gamma delta epsilon' });
+    const second = store.add({ namespace: 'ns', content: 'completely different topic about zeta theta iota kappa lambda' });
+
+    // Low similarity → new entry
+    expect(second.id).not.toBe(first.id);
+  });
+
+  it('dedup returns updated record with new updatedAt timestamp', () => {
+    const store = makeStore();
+    const first = store.add({ namespace: 'ns', content: 'dedup timestamp test' });
+    const second = store.add({ namespace: 'ns', content: 'dedup timestamp test' });
+
+    expect(second.id).toBe(first.id);
+    expect(second.updatedAt > first.updatedAt).toBe(true);
+  });
 });
