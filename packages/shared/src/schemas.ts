@@ -2,7 +2,7 @@ import { z } from 'zod/v4';
 import { AGENT_PUBLISHABLE_EVENT_TYPES } from './constants.js';
 
 export const AgentRegistrationSchema = z.object({
-  agent_id: z.string().min(1).max(64),
+  agentId: z.string().min(1).max(64),
   name: z.string().min(1).max(128),
   capabilities: z.array(z.string().min(1)).min(1),
   interests: z.array(z.string()).default([]),
@@ -15,29 +15,29 @@ export const CreateTaskSchema = z.object({
   requiredCapabilities: z.array(z.string().min(1)).min(1),
   createdBy: z.string().min(1),
   // Collaboration metadata (optional, backward-compatible)
-  from_agent_id: z.string().min(1).max(64).optional(),
-  to_agent_id: z.string().min(1).max(64).optional(),
-  context_ref: z.string().max(1024).optional(),
+  fromAgentId: z.string().min(1).max(64).optional(),
+  toAgentId: z.string().min(1).max(64).optional(),
+  contextRef: z.string().max(1024).optional(),
   artifacts: z.array(z.string()).optional(),
   // Orchestration metadata (OMC-inspired, optional)
-  task_kind: z.string().min(1).max(32).optional(),
-  parent_task_id: z.string().min(1).max(64).optional(),
-  run_id: z.string().min(1).max(64).optional(),
-  verification_required: z.boolean().optional(),
+  taskKind: z.string().min(1).max(32).optional(),
+  parentTaskId: z.string().min(1).max(64).optional(),
+  runId: z.string().min(1).max(64).optional(),
+  verificationRequired: z.boolean().optional(),
 });
 
 export const ClaimTaskSchema = z.object({
-  agent_id: z.string().min(1),
+  agentId: z.string().min(1),
   version: z.number().int().nonnegative(),
 });
 
 export const UpdateTaskSchema = z.object({
-  agent_id: z.string().min(1),
+  agentId: z.string().min(1),
   version: z.number().int().nonnegative(),
   status: z.enum(['working', 'done', 'failed']),
   result: z.string().nullish(),
   error: z.string().nullish(),
-  output_refs: z.array(z.string()).optional(),
+  outputRefs: z.array(z.string()).optional(),
 });
 
 export const MemorySearchSchema = z.object({
@@ -51,13 +51,13 @@ export const RetryTaskSchema = z.object({
 });
 
 export const PublishEventSchema = z.object({
-  agent_id: z.string().min(1).max(64),
+  agentId: z.string().min(1).max(64),
   type: z.enum(AGENT_PUBLISHABLE_EVENT_TYPES),
   data: z.record(z.string(), z.unknown()).default({}),
 });
 
 export const P2PRequestSchema = z.object({
-  from_agent_id: z.string().min(1).max(64),
+  fromAgentId: z.string().min(1).max(64),
   payload: z.record(z.string(), z.unknown()),
-  timeout_ms: z.number().int().min(1000).max(120_000).default(30_000),
+  timeoutMs: z.number().int().min(1000).max(120_000).default(30_000),
 });

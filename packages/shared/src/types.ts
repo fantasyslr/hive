@@ -1,5 +1,5 @@
 export interface AgentCard {
-  agent_id: string;
+  agentId: string;
   name: string;
   capabilities: string[];
   interests: string[];
@@ -29,28 +29,28 @@ export interface Task {
   version: number;
   createdAt: string;
   updatedAt: string;
-  output_refs?: string[];      // e.g., ["mem://public/conclusions/task-xxx"]
+  outputRefs?: string[];      // e.g., ["mem://public/conclusions/task-xxx"]
   // Collaboration metadata (optional, backward-compatible)
-  from_agent_id?: string;      // who created/requested this task
-  to_agent_id?: string;        // intended assignee (hint, not enforced)
-  context_ref?: string;        // mem:// reference for task context
+  fromAgentId?: string;      // who created/requested this task
+  toAgentId?: string;        // intended assignee (hint, not enforced)
+  contextRef?: string;        // mem:// reference for task context
   artifacts?: string[];        // file paths or references attached to this task
   // Orchestration metadata (OMC-inspired, optional)
-  task_kind?: TaskKind;        // intent: plan, execute, verify, fix, review, explore
-  parent_task_id?: string;     // links to parent task for sub-task chains
-  run_id?: string;             // groups tasks in the same workflow run
-  verification_required?: boolean; // when true, completion triggers a verifier sub-task
-  retry_count?: number;        // incremented on each retry, defaults to 0
+  taskKind?: TaskKind;        // intent: plan, execute, verify, fix, review, explore
+  parentTaskId?: string;     // links to parent task for sub-task chains
+  runId?: string;             // groups tasks in the same workflow run
+  verificationRequired?: boolean; // when true, completion triggers a verifier sub-task
+  retryCount?: number;        // incremented on each retry, defaults to 0
 }
 
 export interface MemoryConclusion {
-  task_id: string;
-  agent_id: string;
+  taskId: string;
+  agentId: string;
   conclusion: string;
-  decision_reason: string;
-  impact_scope: string;
+  decisionReason: string;
+  impactScope: string;
   timestamp: string;
-  namespace: string; // "public/conclusions/{task_id}"
+  namespace: string; // "public/conclusions/{taskId}"
 }
 
 export type HiveEventType =
@@ -64,12 +64,12 @@ export type HiveEventType =
   | 'feishu.changed';
 
 export interface FeishuChangeEvent {
-  event_type: string;      // e.g., "bitable.record.changed"
-  app_token?: string;
-  table_id?: string;
-  document_id?: string;
+  eventType: string;      // e.g., "bitable.record.changed"
+  appToken?: string;
+  tableId?: string;
+  documentId?: string;
   action?: string;         // "record_added", "record_updated", etc.
-  operator_id?: string;
+  operatorId?: string;
   timestamp: string;
 }
 
@@ -81,7 +81,7 @@ export interface HiveEvent {
 }
 
 export interface RoutingScore {
-  agent_id: string;
+  agentId: string;
   interest: number;    // 0 or 50
   capability: number;  // 0 or 20
   load: number;        // 0-30
@@ -92,18 +92,18 @@ export interface RoutingScore {
 export type DispatchStrategy = 'interest-first' | 'capability-only';
 
 export interface P2PRequest {
-  from_agent_id: string;
+  fromAgentId: string;
   payload: Record<string, unknown>;
-  timeout_ms?: number; // max wait for target agent response; default 30_000
+  timeoutMs?: number; // max wait for target agent response; default 30_000
 }
 
 export interface P2PResponse {
-  from_agent_id: string;
-  to_agent_id: string;
+  fromAgentId: string;
+  toAgentId: string;
   status: 'delivered' | 'error';
   response?: unknown;
   error?: string;
-  latency_ms: number;
+  latencyMs: number;
 }
 
 export interface BoardSnapshot {
