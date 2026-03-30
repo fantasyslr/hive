@@ -84,6 +84,9 @@ export class MemoryService {
       await this.client.callTool(this.toolNames.add, {
         content: JSON.stringify(conclusion),
         title: namespace,
+        namespace: MEMORY_NAMESPACES.PUBLIC_CONCLUSIONS,
+        agentId: task.assignee ?? 'unknown',
+        taskId: task.id,
       });
 
       this.bus.emit({
@@ -116,6 +119,9 @@ export class MemoryService {
           timestamp: new Date().toISOString(),
         }),
         title: namespace,
+        namespace: `${MEMORY_NAMESPACES.AGENT_PREFIX}/${agentId}`,
+        agentId,
+        taskId: task.id,
       });
 
       const ref = `mem://${namespace}`;
@@ -127,31 +133,38 @@ export class MemoryService {
   }
 
   /**
-   * Search shared memory. The `namespace` parameter maps to the actual storage
-   * path convention used by writeConclusion/writeProcess:
-   *   - "public" → searches for "public/conclusions/" prefixed content
-   *   - "agent"  → searches for "agent/" prefixed content
+   * Search shared memory with optional filters.
    *
-   * This is a soft query hint, NOT a security boundary. The current memory
-   * backend does not enforce access control per namespace.
+   * For backward compatibility, the short namespace aliases "public" and "agent"
+   * are mapped to their full storage paths. Any other namespace value is passed
+   * through as-is to the memory backend filter.
+   *
+   * This is a soft query hint, NOT a security boundary.
    */
-  async search(query: string, namespace: string = 'public', limit: number = 10): Promise<unknown> {
+  async search(
+    query: string,
+    options: { namespace?: string; agentId?: string; after?: string; before?: string; limit?: number } = {},
+  ): Promise<unknown> {
     if (!this.ready || !this.toolNames) return [];
 
-    // Map namespace to the actual storage path prefix used in writes
-    const pathPrefix = namespace === 'agent'
-      ? MEMORY_NAMESPACES.AGENT_PREFIX
-      : MEMORY_NAMESPACES.PUBLIC_CONCLUSIONS;
-    const scopedQuery = `${pathPrefix} ${query}`;
+    const { namespace, agentId, after, before, limit = 10 } = options;
+
+    // Map legacy short aliases to full storage namespace paths
+    let resolvedNs: string | undefined = namespace;
+    if (namespace === 'public') resolvedNs = MEMORY_NAMESPACES.PUBLIC_CONCLUSIONS;
+    else if (namespace === 'agent') resolvedNs = MEMORY_NAMESPACES.AGENT_PREFIX;
+
+    const toolArgs: Record<string, unknown> = { query, limit };
+    if (resolvedNs !== undefined) toolArgs.namespace = resolvedNs;
+    if (agentId !== undefined) toolArgs.agentId = agentId;
+    if (after !== undefined) toolArgs.after = after;
+    if (before !== undefined) toolArgs.before = before;
 
     try {
-      const result = await this.client.callTool(this.toolNames.search, {
-        query: scopedQuery,
-        limit,
-      });
+      const result = await this.client.callTool(this.toolNames.search, toolArgs);
       return result;
     } catch (err) {
-      logger.error({ err, query: scopedQuery, namespace }, 'Memory search failed');
+      logger.error({ err, query, namespace: resolvedNs }, 'Memory search failed');
       return [];
     }
   }
