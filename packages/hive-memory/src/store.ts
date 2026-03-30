@@ -156,10 +156,25 @@ export class MemoryStore {
     ttlMs?: number;
     metadata?: Record<string, unknown>;
   }): MemoryRecord {
+    const namespace = params.namespace ?? '';
+
+    // Dedup: if similar content exists in the same namespace, update instead of insert
+    if (namespace) {
+      const duplicate = this.findDuplicate(namespace, params.content);
+      if (duplicate) {
+        const mergedMetadata = { ...parseMetadata(duplicate.metadata), ...params.metadata };
+        return this.update({
+          id: duplicate.id,
+          title: params.title ?? duplicate.title,
+          content: params.content,
+          metadata: mergedMetadata,
+        });
+      }
+    }
+
     const id = randomUUID();
     const now = this.nextTs();
     const title = params.title ?? '';
-    const namespace = params.namespace ?? '';
     const metadata = params.metadata ?? {};
     const expiresAt = params.ttlMs != null ? new Date(Date.now() + params.ttlMs).toISOString() : null;
     const embedding = serializeEmbedding(this.embedding.embed(buildSearchText(title, params.content, metadata)));

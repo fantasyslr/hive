@@ -177,15 +177,15 @@ describe('MemoryStore', () => {
 
   it('deduplicates highly similar content in the same namespace', () => {
     const store = makeStore();
-    const first = store.add({ namespace: 'ns', content: 'alpha beta' });
-    const second = store.add({ namespace: 'ns', content: 'alpha beta gamma' });
+    const first = store.add({ namespace: 'ns', content: 'the quick brown fox jumps over the lazy dog near the river' });
+    const second = store.add({ namespace: 'ns', content: 'the quick brown fox jumps over the lazy dog near the stream' });
 
-    // High similarity → should update existing
+    // High similarity (>0.85) → should update existing
     expect(second.id).toBe(first.id);
 
-    const results = store.search('alpha beta', 10, { namespace: 'ns' });
+    const results = store.search('quick brown fox', 10, { namespace: 'ns' });
     expect(results).toHaveLength(1);
-    expect(results[0].content).toBe('alpha beta gamma');
+    expect(results[0].content).toBe('the quick brown fox jumps over the lazy dog near the stream');
   });
 
   it('does not deduplicate across different namespaces', () => {
