@@ -3,8 +3,8 @@
  *
  * NAMESPACE ISOLATION STATUS: Convention-based (soft constraint).
  * - The `namespace` query parameter is prepended to the search query as a
- *   prefix hint (e.g., `[public] auth refactor`).
- * - Nowledge Mem does NOT enforce access control per namespace.
+ *   prefix hint (e.g., `public/conclusions auth refactor`).
+ * - The configured memory backend does NOT enforce access control per namespace.
  * - Any agent can search any namespace if they know the path convention.
  * - This is acceptable for the current trust model (all agents are internal).
  * - This is NOT a security boundary — do not rely on it for access control.

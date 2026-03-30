@@ -3,7 +3,14 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { Express } from 'express';
 import type { AddressInfo } from 'node:net';
 import { tasksRouter } from './tasks.js';
-import { heartbeatRouter } from './heartbeat.js';
+import {
+  heartbeatRouter,
+  getHeartbeatLastSeen,
+  registerHeartbeat,
+  setHeartbeatLastSeen,
+  sweepStaleHeartbeats,
+  HEARTBEAT_TIMEOUT_MS,
+} from './heartbeat.js';
 import { eventsRouter } from './events.js';
 import { errorHandler } from '../middleware/error-handler.js';
 import { registry } from '../services/registry.js';
@@ -181,6 +188,7 @@ describe.sequential('review fixes', () => {
       let response = await fetch(`${baseUrl}/heartbeat/agent-heartbeat`, { method: 'POST' });
       expect(response.status).toBe(204);
       expect(registry.get('agent-heartbeat')?.status).toBe('online');
+      expect(getHeartbeatLastSeen('agent-heartbeat')).toBeTypeOf('number');
       expect(onlineEvents).toHaveLength(1);
       expect(onlineEvents[0].data).toMatchObject({
         agent_id: 'agent-heartbeat',
@@ -195,6 +203,75 @@ describe.sequential('review fixes', () => {
     }
   });
 
+  it('marks stale SSE heartbeats offline and releases claimed tasks', () => {
+    const offlineEvents: HiveEvent[] = [];
+    const updatedEvents: HiveEvent[] = [];
+    const offlineHandler = (event: HiveEvent) => offlineEvents.push(event);
+    const updatedHandler = (event: HiveEvent) => updatedEvents.push(event);
+    listeners.push({ type: 'agent.offline', handler: offlineHandler });
+    listeners.push({ type: 'task.updated', handler: updatedHandler });
+    eventBus.on('agent.offline', offlineHandler);
+    eventBus.on('task.updated', updatedHandler);
+
+    registry.register({
+      agent_id: 'reclaim-agent',
+      name: 'Reclaim Agent',
+      capabilities: ['research'],
+      interests: [],
+      endpoint: 'http://localhost:9994',
+    });
+
+    const claimed = taskMachine.create({
+      title: 'Reclaim me',
+      description: 'claimed task for offline reclaim validation',
+      requiredCapabilities: ['research'],
+      createdBy: 'test',
+    });
+    taskMachine.claim(claimed.id, 'reclaim-agent', claimed.version);
+
+    const working = taskMachine.create({
+      title: 'Keep working',
+      description: 'working task should not be reclaimed',
+      requiredCapabilities: ['research'],
+      createdBy: 'test',
+    });
+    const workingClaimed = taskMachine.claim(working.id, 'reclaim-agent', working.version);
+    taskMachine.transition(working.id, 'working', 'reclaim-agent', workingClaimed.version);
+
+    registerHeartbeat('reclaim-agent');
+    const staleNow = Date.now();
+    const staleAt = staleNow - HEARTBEAT_TIMEOUT_MS - 1;
+    expect(getHeartbeatLastSeen('reclaim-agent')).toBeTypeOf('number');
+
+    setHeartbeatLastSeen('reclaim-agent', staleAt);
+    sweepStaleHeartbeats(staleNow);
+
+    expect(registry.get('reclaim-agent')?.status).toBe('offline');
+    expect(taskMachine.get(claimed.id)).toMatchObject({
+      status: 'pending',
+      assignee: null,
+    });
+    expect(taskMachine.get(working.id)).toMatchObject({
+      status: 'working',
+      assignee: 'reclaim-agent',
+    });
+
+    expect(updatedEvents).toHaveLength(1);
+    expect(updatedEvents[0].data).toMatchObject({
+      task_id: claimed.id,
+      status: 'pending',
+      previous_status: 'claimed',
+      released_from_agent_id: 'reclaim-agent',
+      reason: 'assignee_offline',
+    });
+
+    expect(offlineEvents).toHaveLength(1);
+    expect(offlineEvents[0].data).toMatchObject({
+      agent_id: 'reclaim-agent',
+      reason: 'heartbeat_timeout',
+    });
+  });
+
   it('rejects SSE connections for unregistered agents before opening a stream', async () => {
     const app = express();
     app.use('/events', eventsRouter);
@@ -206,6 +283,34 @@ describe.sequential('review fixes', () => {
       const response = await fetch(`${baseUrl}/events/stream?agent_id=missing-agent`);
       expect(response.status).toBe(400);
       expect(await response.json()).toEqual({ error: 'Agent missing-agent not registered' });
+    } finally {
+      await close();
+    }
+  });
+
+  it('keeps heartbeat tracking after SSE disconnect so timeout reclaim can still happen', async () => {
+    const app = express();
+    app.use('/events', eventsRouter);
+    app.use(errorHandler);
+
+    registry.register({
+      agent_id: 'stream-agent',
+      name: 'Stream Agent',
+      capabilities: ['research'],
+      interests: [],
+      endpoint: 'http://localhost:9993',
+    });
+
+    const { baseUrl, close } = await startServer(app);
+
+    try {
+      const response = await fetch(`${baseUrl}/events/stream?agent_id=stream-agent`);
+      expect(response.status).toBe(200);
+      expect(getHeartbeatLastSeen('stream-agent')).toBeTypeOf('number');
+      response.body?.cancel();
+
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      expect(getHeartbeatLastSeen('stream-agent')).toBeTypeOf('number');
     } finally {
       await close();
     }

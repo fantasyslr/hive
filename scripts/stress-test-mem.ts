@@ -1,5 +1,5 @@
 /**
- * Concurrent write stress test for Nowledge Mem.
+ * Concurrent write stress test for the configured memory MCP backend.
  * Go/no-go gate for Phase 2 memory integration.
  *
  * Usage: npx tsx scripts/stress-test-mem.ts
@@ -10,11 +10,11 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 // --- Configuration ---
 const NUM_WRITERS = 3;
 const WRITES_PER_WRITER = 50;
-const MEM_URL = process.env.NOWLEDGE_MEM_URL || 'http://localhost:14242/mcp';
+const MEM_URL = process.env.HIVE_MEMORY_URL || process.env.NOWLEDGE_MEM_URL || 'http://localhost:14242/mcp';
 
-// Tool names — update these if discover-mem-tools.ts reveals different names
-const WRITE_TOOL = process.env.MEM_WRITE_TOOL || 'add_memories';
-const SEARCH_TOOL = process.env.MEM_SEARCH_TOOL || 'search_memory';
+// Tool names — override via env only if you intentionally point at a different backend.
+const WRITE_TOOL = process.env.MEM_WRITE_TOOL || 'memory_add';
+const SEARCH_TOOL = process.env.MEM_SEARCH_TOOL || 'memory_search';
 
 interface WriterResult {
   id: number;
@@ -44,6 +44,7 @@ async function createWriter(id: number): Promise<WriterResult> {
       await client.callTool({
         name: WRITE_TOOL,
         arguments: {
+          title: `stress-test/${id}/${i}`,
           content: `stress-test writer=${id} seq=${i} ts=${Date.now()}`,
         },
       });
@@ -64,7 +65,7 @@ async function createWriter(id: number): Promise<WriterResult> {
 }
 
 async function main() {
-  console.log('=== Nowledge Mem Concurrent Write Stress Test ===');
+  console.log('=== Memory MCP Concurrent Write Stress Test ===');
   console.log(`URL:     ${MEM_URL}`);
   console.log(`Writers: ${NUM_WRITERS}`);
   console.log(`Writes:  ${WRITES_PER_WRITER} per writer`);

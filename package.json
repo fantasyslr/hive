@@ -8,10 +8,18 @@
   "scripts": {
     "start": "tsx packages/hive-gw/src/index.ts",
     "dev": "tsx watch packages/hive-gw/src/index.ts",
+    "memory": "tsx packages/hive-memory/src/index.ts",
+    "dev:memory": "tsx watch packages/hive-memory/src/index.ts",
     "build": "tsup packages/hive-gw/src/index.ts --format esm --dts",
     "test": "vitest run",
     "setup": "bash scripts/setup.sh",
     "smoke": "bash scripts/smoke-test.sh",
+    "runner": "bash scripts/agent-runner.sh",
+    "worker:bridge": "tsx scripts/worker-bridge.ts",
+    "worker:gemini": "bash scripts/start-worker-profile.sh gemini",
+    "worker:codex": "bash scripts/start-worker-profile.sh codex",
+    "worker:claude": "bash scripts/start-worker-profile.sh claude",
+    "cleanup": "bash scripts/cleanup-state.sh",
     "discover-mem": "tsx scripts/discover-mem-tools.ts",
     "stress-test-mem": "tsx scripts/stress-test-mem.ts"
   },

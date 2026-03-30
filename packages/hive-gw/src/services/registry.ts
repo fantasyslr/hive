@@ -32,6 +32,14 @@ export class AgentRegistry {
     return this.agents.delete(agentId);
   }
 
+  restore(agent: RegisteredAgent, options?: { forceOffline?: boolean }): void {
+    const restored: RegisteredAgent = {
+      ...agent,
+      status: options?.forceOffline ? 'offline' : agent.status,
+    };
+    this.agents.set(agent.agent_id, restored);
+  }
+
   get(agentId: string): RegisteredAgent | undefined {
     return this.agents.get(agentId);
   }

@@ -46,7 +46,7 @@ export class BoardPersistence {
     }
   }
 
-  /** Load the most recent board snapshot from Nowledge Mem. Returns true if recovery succeeded. */
+  /** Load the most recent board snapshot from the configured memory backend. Returns true if recovery succeeded. */
   async loadSnapshot(): Promise<boolean> {
     if (!this.ready || !this.toolNames) {
       logger.warn('BoardPersistence not ready — skipping snapshot load');
@@ -56,7 +56,7 @@ export class BoardPersistence {
     try {
       await this.client.ensureConnected();
     } catch {
-      logger.warn('Nowledge Mem unavailable — starting without recovery');
+      logger.warn('Memory backend unavailable — starting without recovery');
       return false;
     }
 
@@ -66,17 +66,16 @@ export class BoardPersistence {
         limit: 1,
       });
 
-      // Parse the search result — Nowledge Mem returns an array of content blocks
+      // Parse the search result — the memory backend returns an array of content blocks
       const snapshot = this.parseSnapshotResult(result);
       if (!snapshot) {
         logger.info('No board snapshot found — starting fresh');
         return false;
       }
 
-      // Restore agents — all marked offline (wait for re-registration)
+      // Restore agents — preserve original timestamps, but force offline until they reconnect
       for (const agent of snapshot.agents) {
-        this.registry.register(agent);
-        this.registry.markOffline(agent.agent_id);
+        this.registry.restore(agent, { forceOffline: true });
       }
 
       // Restore tasks — bypass state transition validation
@@ -129,7 +128,7 @@ export class BoardPersistence {
     logger.info('BoardPersistence hooks registered for state change events');
   }
 
-  /** Immediately persist current board state to Nowledge Mem */
+  /** Immediately persist current board state to the configured memory backend */
   private async persistNow(): Promise<void> {
     if (!this.toolNames) return;
 
@@ -146,14 +145,14 @@ export class BoardPersistence {
 
     logger.info(
       { agents: snapshot.agents.length, tasks: snapshot.tasks.length },
-      'Board snapshot persisted to Nowledge Mem',
+      'Board snapshot persisted to memory backend',
     );
   }
 
-  /** Parse search result from Nowledge Mem into a BoardSnapshot */
+  /** Parse search result from the memory backend into a BoardSnapshot */
   private parseSnapshotResult(result: unknown): BoardSnapshot | null {
     try {
-      // Nowledge Mem search returns an array of content blocks: [{type: 'text', text: '...'}]
+      // Search returns an array of content blocks: [{type: 'text', text: '...'}]
       if (Array.isArray(result) && result.length > 0) {
         const textBlock = result.find(
           (block: Record<string, unknown>) => block.type === 'text' && typeof block.text === 'string',

@@ -25,9 +25,15 @@ export class NotFoundError extends Error {
   }
 }
 
+function classifyLogLevel(status: number): 'error' | 'warn' {
+  if (status >= 500) return 'error';
+  return 'warn';
+}
+
 export function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction): void {
   const status = (err as any).status || 500;
-  logger.error({ err, path: req.path, method: req.method }, 'Request error');
+  const level = classifyLogLevel(status);
+  logger[level]({ err, path: req.path, method: req.method, status }, 'Request error');
   res.status(status).json({
     error: err.message,
     ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),

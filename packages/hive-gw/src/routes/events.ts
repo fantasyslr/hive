@@ -5,7 +5,7 @@ import { HEARTBEAT_INTERVAL_MS, PublishEventSchema } from '@hive/shared';
 import type { HiveEventType } from '@hive/shared';
 import { EventBus, eventBus } from '../services/event-bus.js';
 import { AgentRegistry, registry } from '../services/registry.js';
-import { registerHeartbeat, removeHeartbeat } from './heartbeat.js';
+import { registerHeartbeat } from './heartbeat.js';
 import { logger } from '../config.js';
 
 /** Testable handler factory for POST /events */
@@ -78,7 +78,6 @@ eventsRouter.get('/stream', async (req, res) => {
 
   session.on('disconnected', () => {
     eventBus.getChannel().deregister(session);
-    removeHeartbeat(agentId);
     logger.info({ agentId }, 'SSE connection closed');
   });
 });

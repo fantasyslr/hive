@@ -1,14 +1,14 @@
 /**
- * Standalone script: Connect to Nowledge Mem and print all available tool schemas.
+ * Standalone script: Connect to the configured memory MCP backend and print all available tool schemas.
  * Usage: npx tsx scripts/discover-mem-tools.ts
  */
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
-const MEM_URL = process.env.NOWLEDGE_MEM_URL || 'http://localhost:14242/mcp';
+const MEM_URL = process.env.HIVE_MEMORY_URL || process.env.NOWLEDGE_MEM_URL || 'http://localhost:14242/mcp';
 
 async function main() {
-  console.log(`Connecting to Nowledge Mem at ${MEM_URL} ...`);
+  console.log(`Connecting to memory MCP at ${MEM_URL} ...`);
 
   const client = new Client({ name: 'hive-discover', version: '0.1.0' });
   const transport = new StreamableHTTPClientTransport(new URL(MEM_URL));

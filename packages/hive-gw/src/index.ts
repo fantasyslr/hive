@@ -57,10 +57,10 @@ app.get('/health', (_req, res) => {
 app.use(errorHandler);
 
 async function start() {
-  // 1. Initialize memory service (connect to Nowledge Mem, discover tools)
+  // 1. Initialize memory service (connect to the configured memory backend, discover tools)
   const memReady = await memoryService.init();
   if (memReady) {
-    logger.info('Memory service connected to Nowledge Mem');
+    logger.info('Memory service connected');
   } else {
     logger.warn('Memory service unavailable — running in degraded mode');
   }
@@ -72,7 +72,7 @@ async function start() {
   if (memReady) {
     const recovered = await boardPersistence.loadSnapshot();
     if (recovered) {
-      logger.info('Board state recovered from Nowledge Mem snapshot');
+      logger.info('Board state recovered from snapshot');
     }
   }
 

@@ -28,7 +28,7 @@ export class MemoryService {
     try {
       await this.client.ensureConnected();
       const tools = await this.client.listTools();
-      logger.info({ tools: tools.map((t) => t.name) }, 'Discovered Nowledge Mem tools');
+      logger.info({ tools: tools.map((t) => t.name) }, 'Discovered memory MCP tools');
 
       const addTool = tools.find((t) => t.name === 'memory_add');
       const searchTool = tools.find((t) => t.name === 'memory_search');
@@ -52,7 +52,7 @@ export class MemoryService {
       logger.info({ toolNames: this.toolNames }, 'MemoryService initialized');
       return true;
     } catch (err) {
-      logger.warn({ err }, 'MemoryService running in degraded mode — Nowledge Mem unavailable');
+      logger.warn({ err }, 'MemoryService running in degraded mode — memory backend unavailable');
       this.ready = false;
       return false;
     }
@@ -132,8 +132,8 @@ export class MemoryService {
    *   - "public" → searches for "public/conclusions/" prefixed content
    *   - "agent"  → searches for "agent/" prefixed content
    *
-   * This is a soft query hint, NOT a security boundary. Nowledge Mem does not
-   * enforce access control per namespace.
+   * This is a soft query hint, NOT a security boundary. The current memory
+   * backend does not enforce access control per namespace.
    */
   async search(query: string, namespace: string = 'public', limit: number = 10): Promise<unknown> {
     if (!this.ready || !this.toolNames) return [];

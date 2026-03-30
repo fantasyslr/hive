@@ -148,3 +148,13 @@ tasksRouter.post('/:id/retry', validate(RetryTaskSchema), (req, res) => {
 
   res.json(task);
 });
+
+tasksRouter.delete('/:id', (req, res) => {
+  const taskId = req.params.id as string;
+  const task = taskMachine.delete(taskId);
+  eventBus.emit({
+    type: 'task.updated',
+    data: { task_id: task.id, deleted: true, previous_status: task.status },
+  });
+  res.json({ deleted: true, task });
+});

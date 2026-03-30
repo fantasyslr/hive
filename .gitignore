@@ -3,3 +3,6 @@ dist/
 *.tsbuildinfo
 .env
 !.env.example
+.data/
+.DS_Store
+.tmp-pre-restart-board.json

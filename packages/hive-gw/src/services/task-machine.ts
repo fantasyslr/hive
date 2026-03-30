@@ -51,6 +51,15 @@ export class TaskMachine {
     this.tasks.clear();
   }
 
+  delete(taskId: string): Task {
+    const task = this.tasks.get(taskId);
+    if (!task) {
+      throw new NotFoundError(`Task ${taskId} not found`);
+    }
+    this.tasks.delete(taskId);
+    return task;
+  }
+
   transition(
     taskId: string,
     toStatus: TaskStatus,
@@ -104,6 +113,25 @@ export class TaskMachine {
       this.tasks.set(taskId, { ...task, retry_count: (task.retry_count ?? 0) + 1 });
     }
     return this.transition(taskId, 'pending', null, expectedVersion);
+  }
+
+  releaseClaimedTasksForAgent(agentId: string): Task[] {
+    const released: Task[] = [];
+    for (const task of this.tasks.values()) {
+      if (task.assignee === agentId && task.status === 'claimed') {
+        const updated: Task = {
+          ...task,
+          status: 'pending',
+          assignee: null,
+          error: null,
+          version: task.version + 1,
+          updatedAt: new Date().toISOString(),
+        };
+        this.tasks.set(task.id, updated);
+        released.push(updated);
+      }
+    }
+    return released;
   }
 
   /** Bulk-load a task from snapshot recovery — bypasses state transition validation. Only called during startup recovery. */

@@ -97,5 +97,5 @@ export class MemoryClient {
 }
 
 export const memoryClient = new MemoryClient(
-  process.env.NOWLEDGE_MEM_URL || 'http://localhost:14242/mcp',
+  process.env.HIVE_MEMORY_URL || process.env.NOWLEDGE_MEM_URL || 'http://localhost:14242/mcp',
 );
