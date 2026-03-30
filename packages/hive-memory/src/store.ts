@@ -2,7 +2,7 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
-import { EmbeddingEngine, HashEmbeddingEngine, normalizeText, cosineSimilarity } from './embedding.js';
+import { EmbeddingEngine, HashEmbeddingEngine, normalizeText } from './embedding.js';
 
 export type { MemoryRecord, SearchHit, SearchFilter } from '@hive/shared';
 import type { MemoryRecord, SearchHit, SearchFilter } from '@hive/shared';
@@ -263,11 +263,9 @@ export class MemoryStore {
       WHERE namespace = ? AND (expires_at IS NULL OR expires_at > ?)
     `).all(namespace, new Date().toISOString()) as unknown as MemoryRow[];
 
-    const newEmbedding = this.embedding.embed(content);
-
     for (const row of rows) {
-      const existingEmbedding = deserializeEmbedding(row.embedding);
-      const similarity = cosineSimilarity(newEmbedding, existingEmbedding);
+      const storedEmbedding = deserializeEmbedding(row.embedding);
+      const similarity = this.embedding.score(content, row.content, storedEmbedding);
       if (similarity > threshold) {
         return row;
       }
