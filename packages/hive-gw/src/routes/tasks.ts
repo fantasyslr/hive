@@ -7,6 +7,7 @@ import { registry } from '../services/registry.js';
 import { Dispatcher, scoreAgent } from '../services/dispatcher.js';
 import { eventBus } from '../services/event-bus.js';
 import { NotFoundError } from '../middleware/error-handler.js';
+import { filterTasksByRole } from '../utils/task-visibility.js';
 
 const dispatcher = new Dispatcher(registry, taskMachine);
 
@@ -31,6 +32,9 @@ tasksRouter.post('/', validate(CreateTaskSchema), (req, res) => {
 
 tasksRouter.get('/', (req, res) => {
   let tasks = taskMachine.getAll();
+  // Role-based visibility (AUTH-03)
+  tasks = filterTasksByRole(tasks, req.user!);
+  // Status filter
   const statusFilter = req.query.status as string | undefined;
   if (statusFilter) {
     tasks = tasks.filter(t => t.status === statusFilter as TaskStatus);
