@@ -44,7 +44,11 @@ Plans:
   3. Writing a memory entry with similar content in the same namespace updates the existing entry instead of creating a duplicate
   4. A memory entry created with a TTL is marked expired after that duration and excluded from search results
   5. Memory search accepts filters for namespace, agentId, and time range, and returns only matching entries
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Extend SQLite store with namespace, source metadata, TTL, dedup, filtered search
+- [ ] 02-02-PLAN.md — Update MCP server tools and Gateway MemoryService to use new store capabilities
 
 ### Phase 3: Campaign Templates
 **Goal**: A manager can launch a structured campaign that automatically creates role-specific sub-tasks with the right ordering
@@ -54,7 +58,11 @@ Plans:
   1. Creating a task from the "Campaign" template produces a parent task and one sub-task per role (投放, 运营, 素材) with correct assignments
   2. Sub-tasks have dependency ordering enforced -- a dependent sub-task cannot be claimed until its predecessor is done
   3. Templates are stored as JSON config files and can be modified without restarting the server
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Extend SQLite store with namespace, source metadata, TTL, dedup, filtered search
+- [ ] 02-02-PLAN.md — Update MCP server tools and Gateway MemoryService to use new store capabilities
 
 ## Progress
 
