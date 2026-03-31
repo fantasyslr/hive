@@ -16,8 +16,8 @@
 
 ### Task Templates
 - [ ] **TMPL-01**: Campaign template creates parent task + role-specific sub-tasks automatically
-- [ ] **TMPL-02**: Sub-tasks have dependency ordering (e.g., 调研 before 投放方案)
-- [ ] **TMPL-03**: Templates stored as JSON config, hot-reloadable like orchestrator prompt
+- [x] **TMPL-02**: Sub-tasks have dependency ordering (e.g., 调研 before 投放方案)
+- [x] **TMPL-03**: Templates stored as JSON config, hot-reloadable like orchestrator prompt
 
 ### API Consistency
 - [x] **API-01**: Unify all API field names to camelCase (fix snake_case fields: verification_required, retry_count, etc.)
@@ -52,5 +52,5 @@
 | MEM-04 | Phase 2 | Complete |
 | MEM-05 | Phase 2 | Complete |
 | TMPL-01 | Phase 3 | Pending |
-| TMPL-02 | Phase 3 | Pending |
-| TMPL-03 | Phase 3 | Pending |
+| TMPL-02 | Phase 3 | Complete |
+| TMPL-03 | Phase 3 | Complete |

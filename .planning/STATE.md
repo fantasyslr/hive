@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 02-02-PLAN.md (MCP tool & gateway wiring)
-last_updated: "2026-03-30T15:37:57.140Z"
-last_activity: 2026-03-30
+status: executing
+stopped_at: Completed 03-01-PLAN.md (campaign template infrastructure)
+last_updated: "2026-03-31T02:26:05.983Z"
+last_activity: 2026-03-31
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 6
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** Every task's process and output is captured in shared memory, so the team never starts from scratch on similar work again.
-**Current focus:** Phase 02 — memory-enhancement
+**Current focus:** Phase 03 — campaign-templates
 
 ## Current Position
 
-Phase: 02 (memory-enhancement) — EXECUTING
+Phase: 03 (campaign-templates) — EXECUTING
 Plan: 2 of 2
-Status: Phase complete — ready for verification
-Last activity: 2026-03-30
+Status: Ready to execute
+Last activity: 2026-03-31
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02 P01 | 385 | 2 tasks | 4 files |
 | Phase 02-memory-enhancement P01 | 288 | 2 tasks | 4 files |
 | Phase 02 P02 | 276 | 2 tasks | 6 files |
+| Phase 03 P01 | 180 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,8 @@ Recent decisions affecting current work:
 - [Phase 02-memory-enhancement]: Dedup uses embedding.score() (combined similarity) not raw cosine; only active with non-empty namespace
 - [Phase 02-memory-enhancement]: ISO string TTL comparison instead of SQLite datetime() for consistency with app-layer timestamps
 - [Phase 02]: MemorySearchSchema namespace changed from enum to free-form string for arbitrary namespace support
+- [Phase 03]: Template loader watches entire directory (not individual files) for add/remove/change detection
+- [Phase 03]: dependsOn stores task IDs for runtime enforcement; template uses titles for human authoring
 
 ### Pending Todos
 
@@ -98,6 +101,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T15:37:57.138Z
-Stopped at: Completed 02-02-PLAN.md (MCP tool & gateway wiring)
+Last session: 2026-03-31T02:26:05.981Z
+Stopped at: Completed 03-01-PLAN.md (campaign template infrastructure)
 Resume file: None

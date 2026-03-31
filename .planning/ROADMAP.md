@@ -61,7 +61,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Template types, JSON loader with hot-reload, dependency enforcement in claim route (TMPL-02, TMPL-03)
+- [x] 03-01-PLAN.md — Template types, JSON loader with hot-reload, dependency enforcement in claim route (TMPL-02, TMPL-03)
 - [ ] 03-02-PLAN.md — Template instantiation route: launch campaign creating parent + sub-tasks with resolved deps (TMPL-01)
 
 ## Progress
