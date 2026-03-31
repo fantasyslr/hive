@@ -1,56 +1,72 @@
-# Requirements — Hive v1 Backend Enhancement
+# Requirements: Hive v2.0 Intelligence Layer
 
-## v1 Requirements
+**Defined:** 2026-03-31
+**Core Value:** Every task's process and output is captured in shared memory, so the team never starts from scratch on similar work again.
 
-### Memory Enhancement
-- [x] **MEM-01**: Memory entries include source metadata (agent_id, task_id, created_by)
-- [x] **MEM-02**: Namespace is an independent field on memory entries, not a title prefix convention
-- [x] **MEM-03**: Duplicate detection on write — same namespace + similar content → update instead of insert
-- [x] **MEM-04**: Memory entries support TTL with configurable expiration
-- [x] **MEM-05**: Memory search supports filtering by namespace, agent_id, and time range
+## v2 Requirements
 
-### User Authentication
-- [x] **AUTH-01**: Simple role-based user login (4 fixed users: 投放, 运营, 素材, 主管)
-- [x] **AUTH-02**: API endpoints require auth token (Bearer token, no session)
-- [x] **AUTH-03**: Board and task visibility scoped by role (主管 sees all, others see own + shared)
+### Structured Memory
 
-### Task Templates
-- [x] **TMPL-01**: Campaign template creates parent task + role-specific sub-tasks automatically
-- [x] **TMPL-02**: Sub-tasks have dependency ordering (e.g., 调研 before 投放方案)
-- [x] **TMPL-03**: Templates stored as JSON config, hot-reloadable like orchestrator prompt
+- [ ] **SMEM-01**: Task completion triggers LLM extraction of structured conclusion (conclusion, decisionReason, keyFindings, reusableFor) from task.result
+- [ ] **SMEM-02**: Structured conclusions stored in memory with all extracted fields searchable
 
-### API Consistency
-- [x] **API-01**: Unify all API field names to camelCase (fix snake_case fields: verification_required, retry_count, etc.)
+### History Injection
 
-## v2 Requirements (Deferred)
+- [ ] **HINJ-01**: Before task assignment, system auto-searches related historical conclusions using title+description (top-3)
+- [ ] **HINJ-02**: Matched historical conclusions injected into task contextRef so agents see prior work
+- [ ] **HINJ-03**: Dual-channel retrieval — cosine fast path + LLM selection fallback for low-score results
 
-- Full-text search on memory — O(n) scan is fine for ~1000 entries at MVP scale
-- OAuth / SSO — 4 fixed users, hardcoded credentials sufficient for internal tool
+### Coordinator Agent
+
+- [ ] **CORD-01**: New taskKind values `coordinate` and `synthesize` for task decomposition and result aggregation
+- [ ] **CORD-02**: Batch sub-task creation API — single POST creates multiple tasks with dependsOn relationships
+- [ ] **CORD-03**: Auto-create synthesize task when all sub-tasks of a coordinate task complete
+
+### Hook Engine
+
+- [ ] **HOOK-01**: Declarative hook definitions via JSON config (on event + if condition + action)
+- [ ] **HOOK-02**: Action types: http (webhook POST), create_task (chain tasks), memory_search (inject context)
+- [ ] **HOOK-03**: Hook config hot-reload — file changes apply without server restart
+
+## Future Requirements
+
+- Full-text search on memory — hash embedding O(n) scan fine for ~1000 entries
 - Template editor UI — JSON config manually edited for now
-- Memory garbage collection — TTL marks as expired but no auto-delete yet
-- Budget/cost tracking — requires LLM provider usage APIs that don't exist yet
-- Predictive analytics — basic historical stats first, ML later
+- Memory garbage collection — TTL marks expired but no auto-delete
+- Budget/cost tracking — requires LLM provider usage APIs
+- Agent capability auto-discovery — agents self-declare tools and limits
 
 ## Out of Scope
 
-- Multi-tenant / SaaS — single team, internal tool
-- Mobile app — web only
-- Virse integration — no public API
-- Complex RBAC — 4 users, role field is enough
+| Feature | Reason |
+|---------|--------|
+| Multi-tenant / SaaS | Single team, internal tool |
+| Mobile app | Web only |
+| Complex RBAC | 4 users, role field is enough |
+| Real vector DB (Pinecone etc.) | SQLite + hash embedding sufficient at team scale |
+| Agent sandboxing | Trust boundary unnecessary for internal tool |
 
 ## Traceability
 
-| REQ-ID | Phase | Status |
-|--------|-------|--------|
-| API-01 | Phase 1 | Complete |
-| AUTH-01 | Phase 1 | Complete |
-| AUTH-02 | Phase 1 | Complete |
-| AUTH-03 | Phase 1 | Complete |
-| MEM-01 | Phase 2 | Complete |
-| MEM-02 | Phase 2 | Complete |
-| MEM-03 | Phase 2 | Complete |
-| MEM-04 | Phase 2 | Complete |
-| MEM-05 | Phase 2 | Complete |
-| TMPL-01 | Phase 3 | Complete |
-| TMPL-02 | Phase 3 | Complete |
-| TMPL-03 | Phase 3 | Complete |
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| SMEM-01 | — | Pending |
+| SMEM-02 | — | Pending |
+| HINJ-01 | — | Pending |
+| HINJ-02 | — | Pending |
+| HINJ-03 | — | Pending |
+| CORD-01 | — | Pending |
+| CORD-02 | — | Pending |
+| CORD-03 | — | Pending |
+| HOOK-01 | — | Pending |
+| HOOK-02 | — | Pending |
+| HOOK-03 | — | Pending |
+
+**Coverage:**
+- v2 requirements: 11 total
+- Mapped to phases: 0
+- Unmapped: 11 ⚠️ (pending roadmap creation)
+
+---
+*Requirements defined: 2026-03-31*
+*Last updated: 2026-03-31 after initial definition*
