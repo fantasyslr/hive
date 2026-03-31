@@ -1,181 +1,156 @@
-# Hive
+# Hive — AI-Native Team Kanban
 
-多 AI Agent 协作网关 — 让 Claude Code、Codex CLI、Gemini CLI 等 AI agent 共享记忆、协调任务、自动接力。
+团队看板，AI 做重活。创建一个 Campaign，AI 自动拆分子任务、分配给不同 Agent、执行、交结果，人只需要看和调整。
 
-## 这是什么
+## 30 秒看懂
 
-Hive 不是另一个单独的 AI 工具，而是一个让多个 AI CLI agent 协同工作的轻量网关。
-
-它解决的是这种场景：
-
-- Claude Code 在写代码
-- Codex 在分析问题
-- Gemini 在查资料
-- 但它们彼此不知道对方做过什么
-
-Hive 把它们连到同一个协作面上：
-
-- **共享记忆** — 一个 agent 的结论能被其他 agent 搜到
-- **智能派活** — 任务按兴趣、能力、负载自动分配
-- **自动验证** — 需要验证的任务会自动触发 verify/fix 循环
-- **实时感知** — 通过 SSE 看到任务变化、飞书事件和协作状态
-- **直接对话** — agent 间可以通过 Gateway 做 P2P 请求
-
-## 1 分钟看见 Hive 在工作
-
-如果你只是想先感受一下 Hive 的最小路径，按这个顺序：
-
-```bash
-# 安装依赖并跑一次基础测试
-git clone <repo> && cd hive && bash scripts/setup.sh
-
-# 终端 1：启动本地记忆服务
-npm run memory
-
-# 终端 2：启动 Gateway
-npm start
-
-# 确认 Gateway 已正常工作
-curl http://localhost:3000/health
-# 预期: {"status":"ok", ..., "memoryReady":true}
-
-# 方式 A：跑最小 join/demo 路径
-bash scripts/demo.sh --agent-id demo-agent --name "Demo Agent" --reset
-
-# 方式 B：手动 join 一个 demo agent
-bash scripts/join.sh \
-  --agent-id demo-agent \
-  --name "Demo Agent" \
-  --capabilities research,coding \
-  --interests planning \
-  --endpoint http://localhost:9999
-
-# 看工作看板，确认自己已在线
-curl http://localhost:3000/board
+```
+主管创建 Campaign "Q3 日本彩片推广"
+    │
+    ▼  自动拆分
+Market Research (无依赖)     → Claude 自动领取 → 20s 后交回调研报告
+    │
+    ├──▶ Ad Strategy         → Gemini 自动领取 → 30s 后交回投放方案
+    ├──▶ Creative Assets     → Gemini 自动领取 → 20s 后交回素材清单
+    │
+    ▼  依赖自动解锁
+Manager Review               → Claude 自动领取 → 综合评审 → Done
 ```
 
-成功信号看三件事：
+4 个子任务，2 个 AI Worker，全程零人工干预。打开浏览器实时看到卡片在列之间自动流转。
 
-1. `/health` 里的 `status=ok`
-2. `/health` 里的 `memoryReady=true`
-3. `scripts/join.sh` 输出里出现 `Board 已看到你在线`
-
-如果你还没把 heartbeat 集成进自己的 agent，join 完后立刻先跑一条 keepalive：
+## 快速启动
 
 ```bash
-while true; do
-  curl -sf -X POST http://主力机IP:3000/heartbeat/你的agent_id >/dev/null || break
-  sleep 15
-done
+git clone https://github.com/fantasyslr/hive.git && cd hive
+
+# 安装依赖
+bash scripts/setup.sh
+
+# 终端 1：启动 Gateway + Memory
+npm run dev
+
+# 终端 2：启动前端看板
+npm run dev:ui
+
+# 终端 3：启动 AI Worker（需要 Claude CLI 已安装）
+HIVE_TOKEN=hive-token-manager npm run worker:claude
 ```
 
-## 第一次接入，先看这三份东西
+打开 http://localhost:5173 看看板。局域网其他设备访问 `http://<你的IP>:5173`。
 
-| 你现在想做什么 | 看哪里 |
-|---|---|
-| 想快速启动、跑一个最小演示 | 本 README |
-| 想让一个 agent 技术上接入 Gateway | `docs/onboarding.md` |
-| 想从团队成员视角理解怎么加入、怎么看状态、下一步干嘛 | `docs/user-guide.md` |
-
-## 快速开始
+## 创建第一个 Campaign
 
 ```bash
-# 安装依赖并跑一次基础测试
-git clone <repo> && cd hive && bash scripts/setup.sh
-
-# 终端 1：启动本地记忆服务（默认 http://localhost:14242/mcp）
-# 默认允许的 Host: localhost,127.0.0.1
-npm run memory
-
-# 终端 2：启动 Gateway
-npm start
-
-# 确认 Gateway 已连上 memory
-curl http://localhost:3000/health
-# 预期: {"status":"ok", ..., "memoryReady":true}
-
-# 集成验证（需要 Gateway 在跑）
-npm run smoke
+curl -X POST http://localhost:3000/templates/campaign/launch \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer hive-token-manager" \
+  -d '{"title":"Q3 Japan Colored Lenses Campaign"}'
 ```
 
-## 团队成员加入
+然后看着看板——AI Worker 会自动领取、执行、交结果。
 
-最短路径：
+## 核心能力
 
-```bash
-GATEWAY=http://主力机IP:3000 bash scripts/join.sh
-```
-
-如果想做 demo 或跳过交互输入：
-
-```bash
-GATEWAY=http://主力机IP:3000 bash scripts/join.sh \
-  --agent-id demo-agent \
-  --name "Demo Agent" \
-  --capabilities research,coding \
-  --interests planning \
-  --endpoint http://localhost:9999
-```
-
-脚本会自动帮你做三件事：
-
-1. 检查 Gateway `/health`
-2. 注册 agent
-3. 去 `/board` 里确认你是否已经在线可见
-
-或者把这句话丢给任意 AI CLI agent：
-
-> 你现在接入 Hive。Gateway 地址 http://主力机IP:3000。请先运行 `bash scripts/join.sh`，如果需要协议细节再读 `/docs/onboarding`。
-
-## 核心功能
-
-| 功能 | 说明 |
+| 能力 | 说明 |
 |------|------|
-| Agent 注册 | `POST /agents` 注册后即可接收任务和事件 |
-| 任务调度 | 创建任务自动匹配最佳 agent（兴趣 > 能力 > 负载 > 空闲） |
-| 状态机 | pending → claimed → working → done/failed，版本乐观锁 |
-| VerifyLoop | `verification_required: true` 的任务完成后自动验证，最多 2 轮 |
-| SSE 事件流 | 实时推送任务分配、完成、飞书变更等事件 |
-| P2P 通信 | agent 间直接发请求，Gateway 只做地址解析和转发 |
-| 记忆服务 | 本地 Memory MCP 默认可用，结论写公共区、过程写私有区 |
-| 飞书集成 | Webhook 接收飞书事件，MCP 读写多维表格和文档 |
+| **AI Worker 自动执行** | Claude/Gemini/Codex CLI 注册为 Agent，自动领任务、干活、交结果 |
+| **Campaign 模板** | 一键创建带依赖关系的子任务组，JSON 热加载，不重启 |
+| **依赖 DAG 自动流转** | 子任务完成后自动解锁下游任务并分配 |
+| **共享记忆** | 每次任务的过程和结论存入 Memory，AI 下次接活时自动获取相关上下文 |
+| **实时看板 UI** | React + SSE，卡片自动流转，Working 有脉冲动画，点击查看 AI 产出 |
+| **智能派活** | 兴趣 > 能力 > 负载 > 空闲，加版本乐观锁防重领 |
+| **自动验证** | VerifyLoop — 需要验证的任务自动触发 verify/fix 循环，最多 2 轮 |
+| **角色认证** | 4 个固定角色（投放/运营/素材/主管），Bearer token，主管看全部 |
 
 ## 架构
 
 ```
 packages/
-├── shared/       # @hive/shared — 类型、schemas、常量
-├── hive-gw/      # Gateway — 注册、任务、SSE、记忆、路由、P2P、验证循环
-├── hive-memory/  # 本地 Memory MCP Server（SQLite + 本地向量检索）
-└── feishu-mcp/   # 飞书 MCP Server（读写多维表格/文档）
+├── hive-gw/      # Gateway — Express API，任务调度，SSE，认证
+├── hive-ui/      # 看板 UI — React 19 + Vite + Tailwind v4
+├── hive-memory/  # Memory MCP Server — SQLite + 向量检索 + 去重 + TTL
+├── shared/       # @hive/shared — 类型、Zod schemas、常量
+└── feishu-mcp/   # 飞书集成 — 读写多维表格和文档
 
-docs/
-├── onboarding.md           # Agent 接入协议（API 参考）
-├── user-guide.md           # 团队使用指南（中文）
-└── orchestrator-prompt.md  # 主控调度策略
+scripts/
+├── worker-bridge.ts      # AI Worker 运行时（注册、心跳、领活、执行）
+├── worker-adapter.sh     # CLI 适配器（Claude/Gemini/Codex）
+└── start-worker-profile.sh  # 按角色启动 Worker
 ```
 
-**设计原则：** Gateway 是哑管道。唯一内置逻辑是 VerifyLoop（自动验证/修复子任务），所有其他编排逻辑在 orchestrator prompt 里，可热更新。
+## 启动多个 AI Worker
+
+```bash
+# Claude — 规划、审批、总结
+HIVE_TOKEN=hive-token-manager npm run worker:claude
+
+# Gemini — 调研、设计、营销
+HIVE_TOKEN=hive-token-manager npm run worker:gemini
+
+# Codex — 编码、调试、实现
+HIVE_TOKEN=hive-token-manager npm run worker:codex
+```
+
+Worker 启动后自动注册，看板 Agent Bar 显示上线状态。
 
 ## 命令速查
 
 | 命令 | 说明 |
 |------|------|
-| `npm start` | 启动 Gateway |
-| `npm run dev` | 开发模式（自动重启） |
-| `npm run memory` | 启动本地 Memory MCP Server |
-| `npm run dev:memory` | 本地记忆服务开发模式 |
-| `npm test` | 单元测试（Vitest） |
-| `npm run smoke` | Smoke 集成测试 |
-| `bash scripts/join.sh` | 加入 Hive 并检查自己是否在线 |
+| `npm run dev` | 启动 Gateway（开发模式，自动重启） |
+| `npm run dev:ui` | 启动前端看板 |
+| `npm run memory` | 启动 Memory MCP Server |
+| `npm run worker:claude` | 启动 Claude AI Worker |
+| `npm run worker:gemini` | 启动 Gemini AI Worker |
+| `npm run worker:codex` | 启动 Codex AI Worker |
+| `npm test` | 跑后端测试（Vitest） |
+| `npm test -w packages/hive-ui` | 跑前端测试 |
+| `npm run smoke` | 集成 smoke 测试 |
+| `npm run build:ui` | 构建前端生产版本 |
+
+## 认证
+
+4 个固定用户，Bearer token 认证：
+
+| 角色 | Token | 权限 |
+|------|-------|------|
+| 投放 | `hive-token-ad-buyer` | 看自己的 + 共享的任务 |
+| 运营 | `hive-token-operations` | 同上 |
+| 素材 | `hive-token-creative` | 同上 |
+| 主管 | `hive-token-manager` | 看所有任务 |
+
+`/health` 和 `/events/stream/public` 无需认证。
+
+## API 端点
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/health` | 健康检查（无需 auth） |
+| GET | `/board` | 看板快照（agents + tasks） |
+| POST | `/tasks` | 创建任务 |
+| PATCH | `/tasks/:id` | 更新任务状态 |
+| GET | `/agents` | Agent 列表 |
+| POST | `/agents` | 注册 Agent |
+| GET | `/templates` | 模板列表 |
+| POST | `/templates/:id/launch` | 从模板创建 Campaign |
+| GET | `/events/stream/public` | SSE 公开事件流（无需 auth） |
+| GET | `/memory/search` | 搜索共享记忆 |
 
 ## 技术栈
 
-TypeScript · Express · MCP SDK · SQLite (`node:sqlite`) · Zod · Vitest · 飞书 Open API
+TypeScript · Express 5 · React 19 · Vite · Tailwind v4 · SQLite WAL · Zod v4 · MCP SDK · Vitest · SSE (better-sse)
+
+## 测试
+
+```bash
+npm test                        # 后端：27 files / 159 tests
+npm test -w packages/hive-ui    # 前端：6 files / 17 tests
+```
 
 ## 状态
 
-v0 — 已具备可运行的本地最小协作闭环，并有最小 join/demo 入口。适合 3-5 人小团队内网使用。
+v1.1 — AI Worker 自动执行已跑通。Campaign DAG 全自动流转。适合 3-5 人小团队局域网使用。
 
 ## License
 
