@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: verifying
-stopped_at: Completed 03-02-PLAN.md (template launch route)
-last_updated: "2026-03-31T02:32:33.899Z"
+milestone: v2.0
+milestone_name: Intelligence Layer
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-03-31"
 last_activity: 2026-03-31
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
   percent: 0
 ---
 
@@ -18,17 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-30)
+See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** Every task's process and output is captured in shared memory, so the team never starts from scratch on similar work again.
-**Current focus:** Phase 03 — campaign-templates
+**Current focus:** Defining v2.0 requirements — Intelligence Layer
 
 ## Current Position
 
-Phase: 03 (campaign-templates) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
-Last activity: 2026-03-31
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-31 — Milestone v2.0 started
 
 Progress: [░░░░░░░░░░] 0%
 

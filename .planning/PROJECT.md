@@ -24,17 +24,18 @@ Every task's process and output is captured in shared memory, so the team never 
 - ✓ Auto-write conclusions to memory on task completion — existing
 - ✓ Board snapshot persistence and recovery — existing
 - ✓ Feishu webhook receiver — existing
+- ✓ API unified to camelCase — v1.0
+- ✓ Bearer token auth with role-based visibility — v1.0
+- ✓ Memory source tracking, namespace, dedup, TTL — v1.0
+- ✓ Campaign templates with DAG dependencies — v1.0
 
 ### Active
 
+- [ ] Structured memory extraction — LLM extracts conclusion, decision reason, reusable scope from task results
+- [ ] History injection — new tasks auto-search related past conclusions and inject as context
+- [ ] Coordinator agent — coordinate task type that decomposes big goals into sub-task DAGs
+- [ ] Declarative hook engine — event-driven actions (notify, chain tasks, custom) via config not code
 - [ ] Web kanban UI (task board, agent status, task detail)
-- [ ] Simple user authentication (4 users: 投放, 运营, 素材, 主管)
-- [ ] Memory enhancement: source tracking (which agent, which task)
-- [ ] Memory enhancement: namespace as independent field (not title prefix)
-- [ ] Memory enhancement: deduplication
-- [ ] Memory enhancement: TTL / expiration
-- [ ] Task templates (e.g., "Campaign" auto-creates sub-tasks for each role)
-- [ ] Campaign workflow: parent task splits into role-specific sub-tasks
 - [ ] Historical task browsing and search
 - [ ] Progress overview for managers (who's done, who's pending)
 - [ ] Lovart MCP integration (AI image generation via API)
@@ -48,6 +49,18 @@ Every task's process and output is captured in shared memory, so the team never 
 - Multi-tenant / SaaS deployment — single-team internal tool for now
 - Mobile app — web-only for MVP
 - Budget/cost tracking — requires LLM provider APIs that don't exist yet (Max Plan has no usage API)
+
+## Current Milestone: v2.0 Intelligence Layer
+
+**Goal:** 让 Hive 从被动调度看板升级为主动智能协作平台 — AI 能拆任务、复用历史、自动触发链式动作。
+
+**Target features:**
+- Structured memory extraction (LLM 提取结论、决策原因、复用场景)
+- History injection (新任务自动搜相关历史注入 context)
+- Coordinator agent (大任务拆解为子任务 DAG)
+- Declarative hook engine (声明式事件钩子替代硬编码)
+
+**Design inspiration:** Claude Code source (instructkr/claude-code) — coordinator-worker pattern, LLM-based memory retrieval, hook lifecycle system.
 
 ## Context
 
@@ -95,4 +108,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-30 after initialization*
+*Last updated: 2026-03-31 after v2.0 milestone start*
