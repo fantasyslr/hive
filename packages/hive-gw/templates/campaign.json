@@ -1,0 +1,35 @@
+{
+  "id": "campaign",
+  "name": "Market Campaign",
+  "description": "Standard campaign workflow: research -> strategy + creative -> review",
+  "tasks": [
+    {
+      "title": "Market Research",
+      "role": "operations",
+      "capabilities": ["research"],
+      "dependsOn": [],
+      "description": "Analyze target market, competitors, and audience insights"
+    },
+    {
+      "title": "Ad Strategy",
+      "role": "ad_buyer",
+      "capabilities": ["planning"],
+      "dependsOn": ["Market Research"],
+      "description": "Define ad channels, budget allocation, and targeting strategy"
+    },
+    {
+      "title": "Creative Assets",
+      "role": "creative",
+      "capabilities": ["design"],
+      "dependsOn": ["Market Research"],
+      "description": "Produce visual and copy assets for the campaign"
+    },
+    {
+      "title": "Manager Review",
+      "role": "manager",
+      "capabilities": ["review"],
+      "dependsOn": ["Ad Strategy", "Creative Assets"],
+      "description": "Review all deliverables and approve for launch"
+    }
+  ]
+}

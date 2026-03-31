@@ -130,6 +130,21 @@ export interface P2PResponse {
   latencyMs: number;
 }
 
+export interface CampaignTemplateTask {
+  title: string;
+  role: string;
+  capabilities: string[];
+  dependsOn: string[];   // titles of predecessor tasks
+  description?: string;
+}
+
+export interface CampaignTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  tasks: CampaignTemplateTask[];
+}
+
 export interface BoardSnapshot {
   agents: RegisteredAgent[];
   tasks: Task[];
