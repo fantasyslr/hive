@@ -12,9 +12,9 @@ Hive v0 is a working multi-agent gateway. v1 backend work has three goals: (1) s
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: API Stabilization & Auth** - Unify field naming to camelCase and add Bearer token auth for 4 fixed users
-- [ ] **Phase 2: Memory Enhancement** - Source tracking, namespace refactor, dedup, TTL, and advanced filtering
-- [ ] **Phase 3: Campaign Templates** - Template-driven task creation with role-specific sub-tasks and dependency ordering
+- [x] **Phase 1: API Stabilization & Auth** - Unify field naming to camelCase and add Bearer token auth for 4 fixed users
+- [x] **Phase 2: Memory Enhancement** - Source tracking, namespace refactor, dedup, TTL, and advanced filtering
+- [x] **Phase 3: Campaign Templates** - Template-driven task creation with role-specific sub-tasks and dependency ordering
 
 ## Phase Details
 
@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 - [x] 01-01-PLAN.md — Rename all snake_case fields to camelCase across shared types, schemas, services, routes, and tests (API-01)
 - [x] 01-02-PLAN.md — Create Bearer token auth with 4 fixed users and apply middleware to all endpoints (AUTH-01, AUTH-02)
-- [ ] 01-03-PLAN.md — Add role-based task visibility scoping to GET /tasks and GET /board (AUTH-03)
+- [x] 01-03-PLAN.md — Add role-based task visibility scoping to GET /tasks and GET /board (AUTH-03)
 
 ### Phase 2: Memory Enhancement
 **Goal**: Every piece of team knowledge has a clear origin, lives in a proper namespace, avoids duplication, and expires when stale
@@ -71,6 +71,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. API Stabilization & Auth | 2/3 | In progress | - |
-| 2. Memory Enhancement | 0/2 | Planning done | - |
-| 3. Campaign Templates | 0/2 | Planning done | - |
+| 1. API Stabilization & Auth | 3/3 | Complete | 2026-03-30 |
+| 2. Memory Enhancement | 2/2 | Complete | 2026-03-31 |
+| 3. Campaign Templates | 2/2 | Complete | 2026-03-31 |
