@@ -104,13 +104,13 @@ export function TaskDetail({ task, onClose }: TaskDetailProps) {
                 </div>
               )}
 
-              {/* Result (done) */}
-              {task.result && (
+              {/* AI Output (done) */}
+              {task.status === 'done' && task.result && (
                 <div>
-                  <h3 className="mb-1 text-sm font-medium text-green-600">Result</h3>
-                  <p className="whitespace-pre-wrap text-sm text-slate-700 bg-green-50 rounded-lg p-3">
+                  <h3 className="mb-1 text-sm font-medium text-green-600">AI Output</h3>
+                  <pre className="whitespace-pre-wrap text-sm text-slate-700 bg-green-50 rounded-lg p-3 font-mono text-xs leading-relaxed max-h-96 overflow-y-auto">
                     {task.result}
-                  </p>
+                  </pre>
                 </div>
               )}
 

@@ -58,6 +58,7 @@ export function App() {
         <div className="flex-1">
           <AgentBar
             agents={agents}
+            tasks={tasks}
             selectedAgent={selectedAgent}
             onSelectAgent={setSelectedAgent}
           />

@@ -1,12 +1,19 @@
-import type { RegisteredAgent } from '../lib/types';
+import type { RegisteredAgent, Task } from '../lib/types';
 
 interface AgentBarProps {
   agents: RegisteredAgent[];
+  tasks: Task[];
   selectedAgent: string | null;
   onSelectAgent: (id: string | null) => void;
 }
 
-export function AgentBar({ agents, selectedAgent, onSelectAgent }: AgentBarProps) {
+export function AgentBar({ agents, tasks, selectedAgent, onSelectAgent }: AgentBarProps) {
+  const workingByAgent = new Map<string, Task>();
+  for (const t of tasks) {
+    if (t.status === 'working' && t.assignee) {
+      workingByAgent.set(t.assignee, t);
+    }
+  }
   return (
     <div className="flex items-center gap-2 overflow-x-auto py-2">
       {/* All chip */}
@@ -35,11 +42,18 @@ export function AgentBar({ agents, selectedAgent, onSelectAgent }: AgentBarProps
         >
           <span
             className={`inline-block h-2 w-2 rounded-full ${
-              agent.status === 'online' ? 'bg-green-500' : 'bg-slate-400'
+              agent.status === 'online'
+                ? workingByAgent.has(agent.agentId) ? 'bg-green-500 animate-pulse' : 'bg-green-500'
+                : 'bg-slate-400'
             }`}
           />
           <span>{agent.name}</span>
-          {agent.capabilities.slice(0, 2).map((cap) => (
+          {workingByAgent.has(agent.agentId) && (
+            <span className="text-[10px] text-green-600 truncate max-w-[120px]">
+              Working: {workingByAgent.get(agent.agentId)!.title}
+            </span>
+          )}
+          {!workingByAgent.has(agent.agentId) && agent.capabilities.slice(0, 2).map((cap) => (
             <span
               key={cap}
               className="rounded bg-slate-200/60 px-1.5 py-0.5 text-[10px] text-slate-500"

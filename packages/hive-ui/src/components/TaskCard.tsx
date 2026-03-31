@@ -21,7 +21,11 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
   return (
     <button
       onClick={onClick}
-      className="w-full cursor-pointer rounded-lg border border-slate-200 bg-white p-3 text-left shadow-sm transition hover:shadow-md"
+      className={`w-full cursor-pointer rounded-lg border p-3 text-left shadow-sm transition hover:shadow-md ${
+        task.status === 'working'
+          ? 'border-amber-300 bg-amber-50/50 ring-1 ring-amber-200'
+          : 'border-slate-200 bg-white'
+      }`}
     >
       <p className="mb-1 text-sm font-medium text-slate-800 line-clamp-2">
         {task.title}
@@ -40,9 +44,14 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
         )}
       </div>
 
-      <p className="mt-1.5 text-xs text-slate-400">
-        {task.assignee || 'Unassigned'}
-      </p>
+      <div className="mt-1.5 flex items-center gap-1.5">
+        {task.status === 'working' && (
+          <span className="inline-block h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+        )}
+        <p className={`text-xs ${task.status === 'working' ? 'text-amber-600 font-medium' : 'text-slate-400'}`}>
+          {task.assignee || 'Unassigned'}
+        </p>
+      </div>
     </button>
   );
 }
