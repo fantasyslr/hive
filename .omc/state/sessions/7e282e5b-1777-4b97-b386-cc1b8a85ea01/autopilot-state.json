@@ -1,0 +1,10 @@
+{
+  "active": true,
+  "started_at": "2026-03-30T15:13:03.423Z",
+  "original_prompt": "/gsd:autonomous",
+  "session_id": "7e282e5b-1777-4b97-b386-cc1b8a85ea01",
+  "project_path": "/Users/slr/hive",
+  "reinforcement_count": 0,
+  "awaiting_confirmation": true,
+  "last_checked_at": "2026-03-30T15:13:03.423Z"
+}
