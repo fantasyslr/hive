@@ -16,8 +16,8 @@ ${MEMORY_CONTEXT}}
 Complete this task and output the result. Be concise and actionable."
 
 case "$ROLE" in
-  claude) claude -p "$PROMPT" ;;
-  gemini) gemini -p "$PROMPT" ;;
-  codex)  codex exec "$PROMPT" ;;
+  claude) echo "$PROMPT" | claude -p - ;;
+  gemini) echo "$PROMPT" | gemini -p - ;;
+  codex)  echo "$PROMPT" | codex exec - ;;
   *) echo "Unknown role: $ROLE" >&2; exit 1 ;;
 esac
