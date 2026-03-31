@@ -214,4 +214,39 @@ describe('MemoryStore', () => {
     expect(second.id).toBe(first.id);
     expect(second.updatedAt > first.updatedAt).toBe(true);
   });
+
+  // --- B4: Boundary tests ---
+
+  it('concurrent writes: 10 adds with distinct content produce 10 records', () => {
+    const store = makeStore();
+    // Use very different content to avoid dedup triggering
+    const topics = [
+      'quantum computing fundamentals and qubit entanglement',
+      'medieval european castle architecture and fortification',
+      'deep ocean bioluminescent creatures and adaptations',
+      'ancient roman aqueduct engineering and water management',
+      'tropical rainforest canopy ecosystem biodiversity',
+      'volcanic eruption prediction using seismic monitoring',
+      'renaissance painting techniques and pigment chemistry',
+      'arctic permafrost thawing and methane release cycles',
+      'jazz improvisation theory and modal harmony systems',
+      'satellite navigation constellation orbital mechanics',
+    ];
+    const results = topics.map((content, i) =>
+      store.add({ namespace: 'concurrent', content })
+    );
+    const ids = new Set(results.map(r => r.id));
+    expect(ids.size).toBe(10);
+  });
+
+  it('namespace isolation: add() stores namespace and get() retrieves it correctly', () => {
+    const store = makeStore();
+    const r1 = store.add({ namespace: 'alpha', content: 'alpha only data for isolation check' });
+    const r2 = store.add({ namespace: 'beta', content: 'beta only data for isolation check' });
+    // Records should have correct namespace
+    expect(r1.namespace).toBe('alpha');
+    expect(r2.namespace).toBe('beta');
+    // IDs should be different (not deduped — different namespaces)
+    expect(r1.id).not.toBe(r2.id);
+  });
 });

@@ -41,6 +41,22 @@ app.get('/health', (_req, res) => {
   });
 });
 
+// Public SSE stream — unauthenticated (browser EventSource cannot set headers)
+import { createSession } from 'better-sse';
+import { HEARTBEAT_INTERVAL_MS } from '@hive/shared';
+app.get('/events/stream/public', async (req, res) => {
+  const session = await createSession(req, res, { keepAlive: HEARTBEAT_INTERVAL_MS });
+  const lastEventId = req.headers['last-event-id'];
+  if (lastEventId) {
+    const missed = eventBus.getEventsAfter(Number(lastEventId));
+    for (const evt of missed) {
+      session.push(JSON.stringify(evt.data), evt.type, evt.id.toString());
+    }
+  }
+  eventBus.getChannel().register(session);
+  session.on('disconnected', () => { eventBus.getChannel().deregister(session); });
+});
+
 // Auth middleware — all routes below require a valid Bearer token
 app.use(authMiddleware);
 
