@@ -13,7 +13,7 @@ function getToken(): string {
     const stored = localStorage.getItem('hive_token');
     if (stored) return stored;
   }
-  return 'manager-token';
+  return 'hive-token-manager';
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
