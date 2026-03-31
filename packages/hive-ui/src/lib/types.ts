@@ -5,7 +5,7 @@
  */
 
 export interface AgentCard {
-  agent_id: string;
+  agentId: string;
   name: string;
   capabilities: string[];
   interests: string[];
@@ -35,16 +35,16 @@ export interface Task {
   version: number;
   createdAt: string;
   updatedAt: string;
-  output_refs?: string[];
-  from_agent_id?: string;
-  to_agent_id?: string;
-  context_ref?: string;
+  outputRefs?: string[];
+  fromAgentId?: string;
+  toAgentId?: string;
+  contextRef?: string;
   artifacts?: string[];
-  task_kind?: TaskKind;
-  parent_task_id?: string;
-  run_id?: string;
-  verification_required?: boolean;
-  retry_count?: number;
+  taskKind?: TaskKind;
+  parentTaskId?: string;
+  runId?: string;
+  verificationRequired?: boolean;
+  retryCount?: number;
 }
 
 export interface BoardSnapshot {

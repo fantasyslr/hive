@@ -2,11 +2,26 @@ import type { BoardSnapshot, Task } from './types';
 
 const API_BASE = '/api';
 
+function getToken(): string {
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    const urlToken = params.get('token');
+    if (urlToken) {
+      localStorage.setItem('hive_token', urlToken);
+      return urlToken;
+    }
+    const stored = localStorage.getItem('hive_token');
+    if (stored) return stored;
+  }
+  return 'manager-token';
+}
+
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
       ...init?.headers,
     },
   });
@@ -30,8 +45,8 @@ export interface CreateTaskPayload {
   description?: string;
   requiredCapabilities?: string[];
   createdBy: string;
-  task_kind?: string;
-  verification_required?: boolean;
+  taskKind?: string;
+  verificationRequired?: boolean;
 }
 
 export function createTask(data: CreateTaskPayload): Promise<Task> {

@@ -23,12 +23,12 @@ export function AgentBar({ agents, selectedAgent, onSelectAgent }: AgentBarProps
 
       {agents.map((agent) => (
         <button
-          key={agent.agent_id}
+          key={agent.agentId}
           onClick={() =>
-            onSelectAgent(selectedAgent === agent.agent_id ? null : agent.agent_id)
+            onSelectAgent(selectedAgent === agent.agentId ? null : agent.agentId)
           }
           className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium transition ${
-            selectedAgent === agent.agent_id
+            selectedAgent === agent.agentId
               ? 'bg-blue-600 text-white'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}

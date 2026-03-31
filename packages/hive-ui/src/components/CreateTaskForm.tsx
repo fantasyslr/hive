@@ -44,8 +44,8 @@ export function CreateTaskForm({ onCreated }: CreateTaskFormProps) {
         description: description.trim(),
         requiredCapabilities: caps.length > 0 ? caps : ['general'],
         createdBy: 'web-ui',
-        task_kind: taskKind,
-        verification_required: verificationRequired,
+        taskKind,
+        verificationRequired,
       });
       onCreated(task);
       reset();

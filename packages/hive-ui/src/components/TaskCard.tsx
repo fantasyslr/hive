@@ -16,7 +16,7 @@ const kindColors: Record<string, string> = {
 };
 
 export function TaskCard({ task, onClick }: TaskCardProps) {
-  const kindClass = kindColors[task.task_kind || 'custom'] || kindColors.custom;
+  const kindClass = kindColors[task.taskKind || 'custom'] || kindColors.custom;
 
   return (
     <button
@@ -28,12 +28,12 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
       </p>
 
       <div className="flex items-center gap-1.5 flex-wrap">
-        {task.task_kind && (
+        {task.taskKind && (
           <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${kindClass}`}>
-            {task.task_kind}
+            {task.taskKind}
           </span>
         )}
-        {task.verification_required && (
+        {task.verificationRequired && (
           <span className="text-[10px] text-amber-600" title="Verification required">
             &#x1f6e1;
           </span>

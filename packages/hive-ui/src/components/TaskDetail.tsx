@@ -44,12 +44,12 @@ export function TaskDetail({ task, onClose }: TaskDetailProps) {
                   >
                     {task.status}
                   </span>
-                  {task.task_kind && (
+                  {task.taskKind && (
                     <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
-                      {task.task_kind}
+                      {task.taskKind}
                     </span>
                   )}
-                  {task.verification_required && (
+                  {task.verificationRequired && (
                     <span className="text-xs text-amber-600" title="Verification required">
                       Needs verification
                     </span>
@@ -86,10 +86,10 @@ export function TaskDetail({ task, onClose }: TaskDetailProps) {
                   <span className="text-slate-400">Updated</span>
                   <p className="text-slate-700">{new Date(task.updatedAt).toLocaleString()}</p>
                 </div>
-                {task.parent_task_id && (
+                {task.parentTaskId && (
                   <div className="col-span-2">
                     <span className="text-slate-400">Parent task</span>
-                    <p className="text-slate-700 font-mono text-xs">{task.parent_task_id}</p>
+                    <p className="text-slate-700 font-mono text-xs">{task.parentTaskId}</p>
                   </div>
                 )}
               </div>
@@ -125,11 +125,11 @@ export function TaskDetail({ task, onClose }: TaskDetailProps) {
               )}
 
               {/* Output refs */}
-              {task.output_refs && task.output_refs.length > 0 && (
+              {task.outputRefs && task.outputRefs.length > 0 && (
                 <div>
                   <h3 className="mb-1 text-sm font-medium text-slate-500">Output References</h3>
                   <ul className="space-y-1">
-                    {task.output_refs.map((ref, i) => (
+                    {task.outputRefs.map((ref, i) => (
                       <li key={i} className="text-xs text-blue-600 font-mono bg-slate-50 rounded px-2 py-1">
                         {ref}
                       </li>
