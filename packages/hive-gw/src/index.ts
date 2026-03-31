@@ -19,6 +19,8 @@ import { registry } from './services/registry.js';
 import { MemoryService } from './services/memory-service.js';
 import { BoardPersistence } from './services/board-persistence.js';
 import { VerifyLoop } from './services/verify-loop.js';
+import { Dispatcher } from './services/dispatcher.js';
+import { DependencyUnblocker } from './services/dependency-unblocker.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { authMiddleware } from './middleware/auth.js';
 
@@ -30,6 +32,8 @@ app.use(express.json());
 const memoryService = new MemoryService(memoryClient, eventBus, taskMachine);
 const boardPersistence = new BoardPersistence(memoryClient, eventBus, registry, taskMachine, memoryService);
 const verifyLoop = new VerifyLoop(taskMachine, eventBus);
+const dispatcher = new Dispatcher(registry, taskMachine);
+const dependencyUnblocker = new DependencyUnblocker(taskMachine, eventBus, dispatcher);
 const memoryRouter = createMemoryRouter(memoryService);
 
 // Health check — unauthenticated (for load balancer / monitoring)
@@ -103,6 +107,7 @@ async function start() {
   memoryService.registerHooks();
   boardPersistence.registerHooks();
   verifyLoop.registerHooks();
+  dependencyUnblocker.registerHooks();
 
   // 5. Start prompt watcher
   const promptPath = join(process.cwd(), 'docs', 'orchestrator-prompt.md');
