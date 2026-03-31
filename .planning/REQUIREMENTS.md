@@ -15,7 +15,7 @@
 - [x] **AUTH-03**: Board and task visibility scoped by role (主管 sees all, others see own + shared)
 
 ### Task Templates
-- [ ] **TMPL-01**: Campaign template creates parent task + role-specific sub-tasks automatically
+- [x] **TMPL-01**: Campaign template creates parent task + role-specific sub-tasks automatically
 - [x] **TMPL-02**: Sub-tasks have dependency ordering (e.g., 调研 before 投放方案)
 - [x] **TMPL-03**: Templates stored as JSON config, hot-reloadable like orchestrator prompt
 
@@ -51,6 +51,6 @@
 | MEM-03 | Phase 2 | Complete |
 | MEM-04 | Phase 2 | Complete |
 | MEM-05 | Phase 2 | Complete |
-| TMPL-01 | Phase 3 | Pending |
+| TMPL-01 | Phase 3 | Complete |
 | TMPL-02 | Phase 3 | Complete |
 | TMPL-03 | Phase 3 | Complete |
