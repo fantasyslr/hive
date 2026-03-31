@@ -10,6 +10,7 @@ export class TaskMachine {
     title: string; description: string; requiredCapabilities: string[]; createdBy: string;
     fromAgentId?: string; toAgentId?: string; contextRef?: string; artifacts?: string[];
     taskKind?: string; parentTaskId?: string; runId?: string; verificationRequired?: boolean;
+    dependsOn?: string[];
   }): Task {
     const now = new Date().toISOString();
     const task: Task = {
@@ -34,6 +35,7 @@ export class TaskMachine {
       ...(params.parentTaskId && { parentTaskId: params.parentTaskId }),
       ...(params.runId && { runId: params.runId }),
       ...(params.verificationRequired !== undefined && { verificationRequired: params.verificationRequired }),
+      ...(params.dependsOn && { dependsOn: params.dependsOn }),
     };
     this.tasks.set(task.id, task);
     return task;

@@ -24,6 +24,7 @@ export const CreateTaskSchema = z.object({
   parentTaskId: z.string().min(1).max(64).optional(),
   runId: z.string().min(1).max(64).optional(),
   verificationRequired: z.boolean().optional(),
+  dependsOn: z.array(z.string().min(1).max(64)).optional(),
 });
 
 export const ClaimTaskSchema = z.object({

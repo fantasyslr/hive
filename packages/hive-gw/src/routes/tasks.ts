@@ -69,6 +69,24 @@ tasksRouter.post('/:id/claim', validate(ClaimTaskSchema), (req, res) => {
     res.status(400).json({ error: `Agent ${agentId} not found or offline` });
     return;
   }
+  // Check dependency blocking (TMPL-02)
+  const taskToCheck = taskMachine.get(taskId);
+  if (!taskToCheck) throw new NotFoundError(`Task ${taskId} not found`);
+  if (taskToCheck.dependsOn && taskToCheck.dependsOn.length > 0) {
+    const unmetDeps = taskToCheck.dependsOn.filter(depId => {
+      const dep = taskMachine.get(depId);
+      return !dep || dep.status !== 'done';
+    });
+    if (unmetDeps.length > 0) {
+      res.status(409).json({
+        error: 'Dependencies not met',
+        unmetDependencies: unmetDeps,
+        message: `Task blocked: ${unmetDeps.length} dependency task(s) not yet done`,
+      });
+      return;
+    }
+  }
+
   const task = taskMachine.claim(taskId, agentId, version);
   eventBus.emit({
     type: 'task.assigned',

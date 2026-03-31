@@ -41,6 +41,7 @@ export interface Task {
   runId?: string;             // groups tasks in the same workflow run
   verificationRequired?: boolean; // when true, completion triggers a verifier sub-task
   retryCount?: number;        // incremented on each retry, defaults to 0
+  dependsOn?: string[];       // task IDs that must be "done" before this task can be claimed
 }
 
 export interface MemoryRecord {
