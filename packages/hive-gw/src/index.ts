@@ -10,6 +10,8 @@ import { docsRouter } from './routes/docs.js';
 import { createMemoryRouter } from './routes/memory.js';
 import { createFeishuWebhookRouter } from './routes/feishu-webhook.js';
 import { startPromptWatcher } from './services/prompt-loader.js';
+import { startTemplateWatcher, stopTemplateWatcher } from './services/template-loader.js';
+import { templatesRouter } from './routes/templates.js';
 import { memoryClient } from './services/memory-client.js';
 import { eventBus } from './services/event-bus.js';
 import { taskMachine } from './services/task-machine.js';
@@ -45,6 +47,7 @@ app.use(authMiddleware);
 // Routes (all protected)
 app.use('/agents', agentsRouter);
 app.use('/tasks', tasksRouter);
+app.use('/templates', templatesRouter);
 app.use('/board', boardRouter);
 app.use('/events', eventsRouter);
 app.use('/heartbeat', heartbeatRouter);
@@ -89,7 +92,11 @@ async function start() {
   const promptPath = join(process.cwd(), 'docs', 'orchestrator-prompt.md');
   await startPromptWatcher(promptPath);
 
-  // 6. Start listening (LAST — only accept connections after recovery complete)
+  // 6. Start template watcher
+  const templatePath = join(process.cwd(), 'templates');
+  await startTemplateWatcher(templatePath);
+
+  // 7. Start listening (LAST — only accept connections after recovery complete)
   app.listen(config.port, () => {
     logger.info({ port: config.port, memoryReady: memReady }, 'Hive Gateway started');
   });
