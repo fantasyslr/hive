@@ -25,11 +25,11 @@ interface Task {
   version: number;
   createdAt: string;
   updatedAt: string;
-  task_kind?: string;
-  from_agent_id?: string;
-  to_agent_id?: string;
-  parent_task_id?: string;
-  run_id?: string;
+  taskKind?: string;
+  fromAgentId?: string;
+  toAgentId?: string;
+  parentTaskId?: string;
+  runId?: string;
 }
 
 interface BoardSnapshot {
@@ -62,11 +62,14 @@ function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+const TOKEN = process.env.HIVE_TOKEN ?? 'hive-token-manager';
+
 async function http<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${GATEWAY}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${TOKEN}`,
       ...(init?.headers ?? {}),
     },
   });
@@ -82,7 +85,7 @@ async function register(): Promise<void> {
   await http('/agents', {
     method: 'POST',
     body: JSON.stringify({
-      agent_id: AGENT_ID,
+      agentId: AGENT_ID,
       name: AGENT_NAME,
       capabilities: CAPABILITIES,
       interests: INTERESTS,
@@ -124,7 +127,7 @@ async function requestApproval(task: Task): Promise<'approved' | 'rejected'> {
     const response = await http<{ status: string; response?: any }>(`/agents/${APPROVAL_AGENT_ID}/request`, {
       method: 'POST',
       body: JSON.stringify({
-        from_agent_id: AGENT_ID,
+        from_agentId: AGENT_ID,
         payload: {
           action: 'approval_request',
           task,
@@ -149,13 +152,14 @@ function renderPrompt(task: Task): string {
     .replaceAll('{{TASK_JSON}}', JSON.stringify(task).replaceAll('"', '\\"'));
 }
 
-function buildTaskEnv(task: Task): NodeJS.ProcessEnv {
+function buildTaskEnv(task: Task & { memoryContext?: string }): NodeJS.ProcessEnv {
   return {
     ...process.env,
     HIVE_TASK_ID: task.id,
     HIVE_TASK_TITLE: task.title,
     HIVE_TASK_DESCRIPTION: task.description,
     HIVE_TASK_JSON: JSON.stringify(task),
+    HIVE_MEMORY_CONTEXT: (task as any).memoryContext ?? '',
   };
 }
 
@@ -171,7 +175,7 @@ async function runWorker(task: Task): Promise<{ ok: boolean; result?: string; er
   return new Promise((resolve) => {
     const child = spawn('/bin/bash', ['-lc', command], {
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: process.env,
+      env: buildTaskEnv(task),
     });
 
     let stdout = '';
@@ -199,18 +203,27 @@ async function processClaimedTask(task: Task): Promise<void> {
     if (fresh.assignee !== AGENT_ID || fresh.status !== 'claimed') return;
 
     const working = await patchTask(task.id, {
-      agent_id: AGENT_ID,
+      agentId: AGENT_ID,
       version: fresh.version,
       status: 'working',
     });
 
-    const outcome = await runWorker(working);
+    // Fetch relevant memory context before running worker
+    let memoryContext = '';
+    try {
+      const hits = await http<any[]>(`/memory/search?query=${encodeURIComponent(task.title)}&limit=3`);
+      if (Array.isArray(hits) && hits.length > 0) {
+        memoryContext = hits.map((h: any) => `- ${h.title ?? h.namespace}: ${h.content}`).join('\n');
+      }
+    } catch { /* memory unavailable, proceed without */ }
+
+    const outcome = await runWorker({ ...working, memoryContext } as any);
     const latest = await getTask(task.id);
     if (latest.assignee !== AGENT_ID || latest.status !== 'working') return;
 
     if (outcome.ok) {
       await patchTask(task.id, {
-        agent_id: AGENT_ID,
+        agentId: AGENT_ID,
         version: latest.version,
         status: 'done',
         result: outcome.result,
@@ -218,7 +231,7 @@ async function processClaimedTask(task: Task): Promise<void> {
       console.log(`[bridge] task done ${task.id}`);
     } else {
       await patchTask(task.id, {
-        agent_id: AGENT_ID,
+        agentId: AGENT_ID,
         version: latest.version,
         status: 'failed',
         error: outcome.error,
