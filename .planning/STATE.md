@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 status: verifying
 stopped_at: Completed 03-02-PLAN.md (template launch route)
-last_updated: "2026-03-31T02:32:06.750Z"
+last_updated: "2026-03-31T02:32:33.899Z"
 last_activity: 2026-03-31
 progress:
   total_phases: 3
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02 P02 | 276 | 2 tasks | 6 files |
 | Phase 03 P01 | 180 | 2 tasks | 8 files |
 | Phase 03 P02 | 221 | 2 tasks | 3 files |
+| Phase 03 P02 | 246 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,8 @@ Recent decisions affecting current work:
 - [Phase 03]: Template loader watches entire directory (not individual files) for add/remove/change detection
 - [Phase 03]: dependsOn stores task IDs for runtime enforcement; template uses titles for human authoring
 - [Phase 03]: launchTemplate() extracted as pure function for testability — takes TaskMachine and Dispatcher as args
+- [Phase 03]: launchTemplate() extracted as pure function for testability — takes TaskMachine and Dispatcher as args
+- [Phase 03]: Template launch creates parent task with taskKind plan and requiredCapabilities orchestration
 
 ### Pending Todos
 
@@ -103,6 +106,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-31T02:32:06.748Z
+Last session: 2026-03-31T02:32:33.896Z
 Stopped at: Completed 03-02-PLAN.md (template launch route)
 Resume file: None
