@@ -52,4 +52,8 @@ export interface HarnessAdapter {
   execute(task: TaskPayload): Promise<StructuredResult>;
   /** Optional cancellation (best-effort) */
   cancel?(): Promise<void>;
+  /** Phase 6: Persistent session support (optional, per D-08) */
+  startSession?(runId: string): Promise<void>;
+  resumeSession?(runId: string): Promise<void>;
+  endSession?(runId: string): Promise<void>;
 }
