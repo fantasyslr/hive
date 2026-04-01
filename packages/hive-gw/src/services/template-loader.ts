@@ -1,5 +1,5 @@
 import { readdir, readFile } from 'node:fs/promises';
-import { watch, type FSWatcher } from 'node:fs';
+import { watch, existsSync, type FSWatcher } from 'node:fs';
 import { join } from 'node:path';
 import type { CampaignTemplate } from '@hive/shared';
 import { logger } from '../config.js';
@@ -45,6 +45,11 @@ export function getAllTemplates(): CampaignTemplate[] {
 }
 
 export async function startTemplateWatcher(dirPath: string): Promise<void> {
+  if (!existsSync(dirPath)) {
+    logger.warn({ dirPath }, 'Template directory not found, watcher not started');
+    return;
+  }
+
   await loadTemplates(dirPath);
 
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
