@@ -67,7 +67,7 @@ Plans:
 - [ ] **Phase 4: Worker Runtime Foundation** - Typed adapter layer, tool registry, structured result contracts, worker capability model
 - [ ] **Phase 5: Structured Memory + History Injection** - LLM-extracted conclusions, dual-channel retrieval, side query pattern, history context injection
 - [ ] **Phase 6: Coordinator + Session Mode** - Task decomposition into sub-task DAGs, result synthesis, persistent worker sessions
-- [ ] **Phase 7: Hook Engine** - Declarative event-driven actions via JSON config, hot-reload
+- [x] **Phase 7: Hook Engine** - Declarative event-driven actions via JSON config, hot-reload (completed 2026-04-01)
 
 ## Phase Details
 
@@ -133,11 +133,11 @@ Plans:
   2. Hook actions support: http (POST to external URL like Feishu webhook), create_task (chain a follow-up task), memory_search (inject context from memory)
   3. Editing the hook config file takes effect without restarting the server — hot-reload within seconds
   4. Existing hardcoded behaviors (VerifyLoop, DependencyUnblocker) continue working alongside declarative hooks — migration is incremental
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 07-01-PLAN.md — HookEngine core: Zod config schema, condition evaluator, ActionHandler interface (HOOK-01)
-- [ ] 07-02-PLAN.md — Action handlers (http, create_task, memory_search) + gateway wiring + hot-reload + hooks.json (HOOK-02, HOOK-03)
+- [x] 07-02-PLAN.md — Action handlers (http, create_task, memory_search) + gateway wiring + hot-reload + hooks.json (HOOK-02, HOOK-03)
 
 ## Progress
 
@@ -152,4 +152,4 @@ Phases execute in numeric order: 4 → 5 → 6 → 7
 | 4. Worker Runtime Foundation | v2.0 | 0/4 | Planning complete | - |
 | 5. Structured Memory + History Injection | v2.0 | 0/3 | Planning complete | - |
 | 6. Coordinator + Session Mode | v2.0 | 0/3 | Planning complete | - |
-| 7. Hook Engine | v2.0 | 1/2 | In Progress|  |
+| 7. Hook Engine | v2.0 | 2/2 | Complete   | 2026-04-01 |
