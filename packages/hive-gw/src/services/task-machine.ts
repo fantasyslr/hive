@@ -168,6 +168,15 @@ export class TaskMachine {
     return updated;
   }
 
+  /** Update contextRef on a task — used by HistoryInjector to attach related conclusions */
+  updateContextRef(taskId: string, contextRef: string | import('@hive/shared').HistoryContext[]): Task | null {
+    const task = this.tasks.get(taskId);
+    if (!task) return null;
+    const updated = { ...task, contextRef, updatedAt: new Date().toISOString() };
+    this.tasks.set(taskId, updated);
+    return updated;
+  }
+
   private sameRefs(a?: string[], b?: string[]): boolean {
     if (!a && !b) return true;
     if (!a || !b) return false;

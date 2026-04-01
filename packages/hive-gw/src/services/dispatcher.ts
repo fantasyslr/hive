@@ -2,6 +2,8 @@ import type { RegisteredAgent, RoutingScore, Task } from '@hive/shared';
 import { ROUTING_WEIGHTS, STARVATION_THRESHOLD_MS, STARVATION_BOOST } from '@hive/shared';
 import type { AgentRegistry } from './registry.js';
 import type { TaskMachine } from './task-machine.js';
+import type { HistoryInjector } from './history-injector.js';
+import { logger } from '../config.js';
 
 export interface StarvationContext {
   lastAssignedAt?: string;
@@ -65,11 +67,15 @@ export function scoreAgent(
 
 export class Dispatcher {
   private lastAssigned = new Map<string, string>();
+  private injector: HistoryInjector | null;
 
   constructor(
     private registry: AgentRegistry,
     private taskMachine: TaskMachine,
-  ) {}
+    injector?: HistoryInjector,
+  ) {
+    this.injector = injector ?? null;
+  }
 
   /** Build a load map from all active (claimed/working) tasks. */
   private buildLoadMap(): Map<string, number> {
@@ -117,6 +123,21 @@ export class Dispatcher {
   autoAssign(task: Task): { task: Task; agent: RegisteredAgent } | null {
     const agent = this.findBestAgent(task.requiredCapabilities, task);
     if (!agent) return null;
+
+    // History injection — per D-08: inject before claim so agent sees context
+    if (this.injector) {
+      this.injector
+        .inject(task)
+        .then((history) => {
+          if (history.length > 0) {
+            this.taskMachine.updateContextRef(task.id, history);
+          }
+        })
+        .catch((err) => {
+          // Per D-11: injection failure never blocks assignment
+          logger.warn({ err, taskId: task.id }, 'History injection failed during autoAssign');
+        });
+    }
 
     const updatedTask = this.taskMachine.claim(task.id, agent.agentId, task.version);
     // Record assignment time — resets starvation boost

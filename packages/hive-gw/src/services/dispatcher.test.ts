@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import type { RegisteredAgent, Task } from '@hive/shared';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type { RegisteredAgent, Task, HistoryContext } from '@hive/shared';
 import { ROUTING_WEIGHTS, STARVATION_THRESHOLD_MS, STARVATION_BOOST } from '@hive/shared';
 import { scoreAgent, Dispatcher } from './dispatcher.js';
 import { AgentRegistry } from './registry.js';
 import { TaskMachine } from './task-machine.js';
+import type { HistoryInjector } from './history-injector.js';
 
 function makeAgent(overrides: Partial<RegisteredAgent> = {}): RegisteredAgent {
   return {
@@ -223,5 +224,61 @@ describe('scoreAgent — starvation boost', () => {
     expect(lastAssigned).toBeDefined();
     const elapsed = Date.now() - new Date(lastAssigned!).getTime();
     expect(elapsed).toBeLessThan(5000); // assigned within last 5 seconds
+  });
+});
+
+describe('Dispatcher — history injection', () => {
+  let registry: AgentRegistry;
+  let taskMachine: TaskMachine;
+
+  beforeEach(() => {
+    registry = new AgentRegistry();
+    taskMachine = new TaskMachine();
+    registry.register({ agentId: 'a1', name: 'A1', capabilities: ['code'], interests: ['code'], endpoint: 'http://localhost:3001' });
+  });
+
+  it('autoAssign calls injector.inject when injector provided', async () => {
+    const mockHistory: HistoryContext[] = [
+      { taskId: 't-old', conclusion: 'Prior work', decisionReason: 'reason', reusableFor: ['code'], similarity: 0.8 },
+    ];
+    const injector = { inject: vi.fn().mockResolvedValue(mockHistory) } as unknown as HistoryInjector;
+    const dispatcher = new Dispatcher(registry, taskMachine, injector);
+
+    const task = taskMachine.create({ title: 'Code task', description: 'desc', requiredCapabilities: ['code'], createdBy: 'user-1' });
+    const result = dispatcher.autoAssign(task);
+
+    expect(result).not.toBeNull();
+    expect(result!.task.status).toBe('claimed');
+    expect(injector.inject).toHaveBeenCalledWith(task);
+
+    // Wait for async injection to complete
+    await vi.waitFor(() => {
+      const updated = taskMachine.get(task.id);
+      expect(updated?.contextRef).toBeDefined();
+    });
+  });
+
+  it('autoAssign works without injector (backward compatible)', () => {
+    const dispatcher = new Dispatcher(registry, taskMachine);
+
+    const task = taskMachine.create({ title: 'Code task', description: 'desc', requiredCapabilities: ['code'], createdBy: 'user-1' });
+    const result = dispatcher.autoAssign(task);
+
+    expect(result).not.toBeNull();
+    expect(result!.task.status).toBe('claimed');
+    expect(result!.agent.agentId).toBe('a1');
+  });
+
+  it('autoAssign succeeds even when injection fails (per D-11)', () => {
+    const injector = { inject: vi.fn().mockRejectedValue(new Error('Injection failed')) } as unknown as HistoryInjector;
+    const dispatcher = new Dispatcher(registry, taskMachine, injector);
+
+    const task = taskMachine.create({ title: 'Code task', description: 'desc', requiredCapabilities: ['code'], createdBy: 'user-1' });
+    const result = dispatcher.autoAssign(task);
+
+    // Assignment succeeds despite injection failure
+    expect(result).not.toBeNull();
+    expect(result!.task.status).toBe('claimed');
+    expect(result!.agent.agentId).toBe('a1');
   });
 });
