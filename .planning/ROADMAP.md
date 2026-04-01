@@ -100,7 +100,12 @@ Plans:
   4. An agent claiming a task sees injected historical conclusions in the task payload — actionable context, not hidden metadata
   5. When cosine scores are low, LLM fallback selection finds semantically related conclusions that vector search missed
   6. Tasks with no relevant history proceed normally with empty contextRef — injection never blocks assignment
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Type contracts (MemoryConclusion extension, HistoryContext) + extractWithLLM utility + LlmClient (SMEM-01, SMEM-02)
+- [ ] 05-02-PLAN.md — Wire LLM extraction into MemoryService.writeConclusion with structured storage (SMEM-01, SMEM-02)
+- [ ] 05-03-PLAN.md — HistoryInjector with dual-channel retrieval + wire into Dispatcher.autoAssign (HINJ-01, HINJ-02, HINJ-03)
 
 ### Phase 6: Coordinator + Session Mode
 **Goal**: Complex goals decompose into ordered sub-task DAGs that execute and synthesize results automatically; workers can maintain context across consecutive tasks
@@ -136,6 +141,6 @@ Phases execute in numeric order: 4 → 5 → 6 → 7
 | 2. Memory Enhancement | v1.0 | 2/2 | Complete | 2026-03-31 |
 | 3. Campaign Templates | v1.0 | 2/2 | Complete | 2026-03-31 |
 | 4. Worker Runtime Foundation | v2.0 | 0/4 | Planning complete | - |
-| 5. Structured Memory + History Injection | v2.0 | 0/? | Not started | - |
+| 5. Structured Memory + History Injection | v2.0 | 0/3 | Planning complete | - |
 | 6. Coordinator + Session Mode | v2.0 | 0/? | Not started | - |
 | 7. Hook Engine | v2.0 | 0/? | Not started | - |
