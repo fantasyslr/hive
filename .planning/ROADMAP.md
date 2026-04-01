@@ -117,7 +117,12 @@ Plans:
   3. When all sub-tasks of a coordinate task reach "done", a synthesize task is auto-created that aggregates results
   4. A worker in persistent session mode maintains context across consecutive tasks in the same runId — explore → execute → fix → verify without cold restart between steps
   5. One-shot mode remains default for simple tasks; persistent mode is opt-in per taskKind or explicit flag
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Extend TaskKind with coordinate/synthesize + batch sub-task creation API (CORD-01, CORD-02)
+- [ ] 06-02-PLAN.md — Persistent worker session support in HarnessAdapter + ClaudeAdapter (CORD-04)
+- [ ] 06-03-PLAN.md — CoordinatorService LLM decomposition + synthesis trigger in DependencyUnblocker (CORD-01, CORD-03)
 
 ### Phase 7: Hook Engine
 **Goal**: Lifecycle behaviors (notifications, task chaining, context injection) are defined declaratively in JSON config — the team adds automations without touching code
@@ -142,5 +147,5 @@ Phases execute in numeric order: 4 → 5 → 6 → 7
 | 3. Campaign Templates | v1.0 | 2/2 | Complete | 2026-03-31 |
 | 4. Worker Runtime Foundation | v2.0 | 0/4 | Planning complete | - |
 | 5. Structured Memory + History Injection | v2.0 | 0/3 | Planning complete | - |
-| 6. Coordinator + Session Mode | v2.0 | 0/? | Not started | - |
+| 6. Coordinator + Session Mode | v2.0 | 0/3 | Planning complete | - |
 | 7. Hook Engine | v2.0 | 0/? | Not started | - |
