@@ -16,7 +16,7 @@ case "$ROLE" in
     export HIVE_CAPABILITIES="${HIVE_CAPABILITIES:-research,design,frontend,marketing,writing}"
     export HIVE_INTERESTS="${HIVE_INTERESTS:-research,design,frontend,marketing}"
     export HIVE_AGENT_ENDPOINT="${HIVE_AGENT_ENDPOINT:-http://localhost:9102}"
-    export HIVE_WORKER_COMMAND="${HIVE_WORKER_COMMAND:-bash scripts/worker-adapter.sh gemini}"
+    export HIVE_HARNESS=gemini
     ;;
   codex)
     export HIVE_AGENT_ID="${HIVE_AGENT_ID:-codex-exec}"
@@ -24,7 +24,7 @@ case "$ROLE" in
     export HIVE_CAPABILITIES="${HIVE_CAPABILITIES:-coding,debug,review,implementation,execution}"
     export HIVE_INTERESTS="${HIVE_INTERESTS:-coding,debug,review,implementation}"
     export HIVE_AGENT_ENDPOINT="${HIVE_AGENT_ENDPOINT:-http://localhost:9103}"
-    export HIVE_WORKER_COMMAND="${HIVE_WORKER_COMMAND:-bash scripts/worker-adapter.sh codex}"
+    export HIVE_HARNESS=codex
     ;;
   claude)
     export HIVE_AGENT_ID="${HIVE_AGENT_ID:-claude-main}"
@@ -32,7 +32,7 @@ case "$ROLE" in
     export HIVE_CAPABILITIES="${HIVE_CAPABILITIES:-planning,summary,approval,orchestration}"
     export HIVE_INTERESTS="${HIVE_INTERESTS:-planning,approval,summary}"
     export HIVE_AGENT_ENDPOINT="${HIVE_AGENT_ENDPOINT:-http://localhost:9101}"
-    export HIVE_WORKER_COMMAND="${HIVE_WORKER_COMMAND:-bash scripts/worker-adapter.sh claude}"
+    export HIVE_HARNESS=claude
     ;;
   *)
     echo "unknown role: $ROLE" >&2
