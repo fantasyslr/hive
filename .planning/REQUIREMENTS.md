@@ -25,8 +25,8 @@
 
 ### Coordinator Agent
 
-- [ ] **CORD-01**: New taskKind values `coordinate` and `synthesize` for task decomposition and result aggregation
-- [ ] **CORD-02**: Batch sub-task creation API — single POST creates multiple tasks with dependsOn relationships
+- [x] **CORD-01**: New taskKind values `coordinate` and `synthesize` for task decomposition and result aggregation
+- [x] **CORD-02**: Batch sub-task creation API — single POST creates multiple tasks with dependsOn relationships
 - [ ] **CORD-03**: Auto-create synthesize task when all sub-tasks of a coordinate task complete
 - [x] **CORD-04**: Worker supports persistent session mode — consecutive tasks (explore → execute → fix → verify) share context without cold restart
 
@@ -71,8 +71,8 @@
 | HINJ-01 | Phase 5 | Complete |
 | HINJ-02 | Phase 5 | Complete |
 | HINJ-03 | Phase 5 | Complete |
-| CORD-01 | Phase 6 | Pending |
-| CORD-02 | Phase 6 | Pending |
+| CORD-01 | Phase 6 | Complete |
+| CORD-02 | Phase 6 | Complete |
 | CORD-03 | Phase 6 | Pending |
 | CORD-04 | Phase 6 | Complete |
 | HOOK-01 | Phase 7 | Pending |
