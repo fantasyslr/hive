@@ -135,6 +135,16 @@ async function runWorker(task: Task & { memoryContext?: string }): Promise<{ ok:
       ...task,
       memoryContext: (task as any).memoryContext ?? undefined,
     };
+
+    // Start or resume persistent session if task has a runId (Phase 6 CORD-04)
+    if (payload.runId && adapter.startSession) {
+      try {
+        await adapter.startSession(payload.runId);
+      } catch (err) {
+        console.warn(`[bridge] session start failed for runId=${payload.runId}, falling back to one-shot`, err);
+      }
+    }
+
     const structuredResult: StructuredResult = await adapter.execute(payload);
     return { ok: true, result: JSON.stringify(structuredResult) };
   } catch (err) {

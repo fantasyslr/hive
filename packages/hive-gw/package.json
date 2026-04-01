@@ -5,6 +5,7 @@
   "dependencies": {
     "@hive/feishu-mcp": "*",
     "@hive/shared": "*",
+    "@hive/worker": "*",
     "@modelcontextprotocol/sdk": "^1.28.0",
     "better-sse": "^0.16.1",
     "express": "^5.2.1",

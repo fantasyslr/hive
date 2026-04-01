@@ -23,7 +23,9 @@ import { VerifyLoop } from './services/verify-loop.js';
 import { Dispatcher } from './services/dispatcher.js';
 import { DependencyUnblocker } from './services/dependency-unblocker.js';
 import { CoordinatorService } from './services/coordinator-service.js';
+import { HistoryInjector } from './services/history-injector.js';
 import { HookEngine } from './services/hook-engine.js';
+import { createHaikuClient } from '@hive/worker';
 import { HttpAction, CreateTaskAction, MemorySearchAction } from './services/hook-actions.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { authMiddleware } from './middleware/auth.js';
@@ -33,12 +35,14 @@ const app = express();
 app.use(express.json());
 
 // Services (created before routes so the router can reference them)
-const memoryService = new MemoryService(memoryClient, eventBus, taskMachine);
+const llmClient = process.env.ANTHROPIC_API_KEY ? createHaikuClient(process.env.ANTHROPIC_API_KEY) : null;
+const memoryService = new MemoryService(memoryClient, eventBus, taskMachine, llmClient ?? undefined);
+const historyInjector = new HistoryInjector(memoryService, llmClient);
 const boardPersistence = new BoardPersistence(memoryClient, eventBus, registry, taskMachine, memoryService);
 const verifyLoop = new VerifyLoop(taskMachine, eventBus);
-const dispatcher = new Dispatcher(registry, taskMachine);
+const dispatcher = new Dispatcher(registry, taskMachine, historyInjector);
 const dependencyUnblocker = new DependencyUnblocker(taskMachine, eventBus, dispatcher);
-const coordinatorService = new CoordinatorService(taskMachine, eventBus, dispatcher, null);
+const coordinatorService = new CoordinatorService(taskMachine, eventBus, dispatcher, llmClient);
 const hookEngine = new HookEngine(eventBus, {
   http: new HttpAction(),
   create_task: new CreateTaskAction(taskMachine),
