@@ -1,5 +1,6 @@
 import express from 'express';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { readFileSync, watch } from 'node:fs';
 import { config, logger } from './config.js';
 import { agentsRouter } from './routes/agents.js';
@@ -162,8 +163,10 @@ async function start() {
   const promptPath = join(process.cwd(), 'docs', 'orchestrator-prompt.md');
   await startPromptWatcher(promptPath);
 
-  // 6. Start template watcher
-  const templatePath = join(process.cwd(), 'templates');
+  // 6. Start template watcher — resolve relative to package, not cwd
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const templatePath = join(__dirname, '..', 'templates');
   await startTemplateWatcher(templatePath);
 
   // 7. Start listening (LAST — only accept connections after recovery complete)

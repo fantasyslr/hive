@@ -176,6 +176,45 @@ describe('Template routes', () => {
       expect((result as { error: string }).error).toContain('Duplicate');
     });
 
+    it('returns error for template with cyclic dependencies', async () => {
+      const cyclicTpl = {
+        id: 'cyclic',
+        name: 'Cyclic Template',
+        tasks: [
+          { title: 'Task A', role: 'ops', capabilities: ['research'], dependsOn: ['Task B'] },
+          { title: 'Task B', role: 'ops', capabilities: ['planning'], dependsOn: ['Task A'] },
+        ],
+      };
+      await writeFile(join(tmpDir, 'cyclic.json'), JSON.stringify(cyclicTpl));
+      await startTemplateWatcher(tmpDir);
+
+      const result = launchTemplate('cyclic', { userId: 'manager' }, tm, dispatcher);
+      expect(result).toHaveProperty('error');
+      expect((result as { error: string }).error).toContain('Cycle');
+    });
+
+    it('resolves forward references correctly via topological sort', async () => {
+      // Task B depends on Task A, but B is listed first — should still work
+      const forwardTpl = {
+        id: 'forward',
+        name: 'Forward Ref Template',
+        tasks: [
+          { title: 'Task B', role: 'ops', capabilities: ['planning'], dependsOn: ['Task A'] },
+          { title: 'Task A', role: 'ops', capabilities: ['research'], dependsOn: [] },
+        ],
+      };
+      await writeFile(join(tmpDir, 'forward.json'), JSON.stringify(forwardTpl));
+      await startTemplateWatcher(tmpDir);
+
+      const result = launchTemplate('forward', { userId: 'manager' }, tm, dispatcher);
+      expect(result).not.toHaveProperty('error');
+      const r = result as { parent: any; subTasks: any[] };
+      const taskA = r.subTasks.find(t => t.title === 'Task A')!;
+      const taskB = r.subTasks.find(t => t.title === 'Task B')!;
+      expect(taskB.dependsOn).toContain(taskA.id);
+      expect(taskA.dependsOn).toEqual([]);
+    });
+
     it('parent task has taskKind "plan" and orchestration capability', () => {
       const result = launchTemplate('campaign', { userId: 'manager' }, tm, dispatcher);
       expect(result!.parent.taskKind).toBe('plan');

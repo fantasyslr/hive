@@ -113,7 +113,33 @@ export function launchTemplate(
     }
   }
 
-  // --- Creation pass: guaranteed safe after validation ---
+  // --- Topological sort with cycle detection ---
+  const sorted: typeof template.tasks = [];
+  const visited = new Set<string>();
+  const visiting = new Set<string>();
+  const taskByTitle = new Map(template.tasks.map(t => [t.title, t]));
+
+  function visit(title: string, path: string[]): string | null {
+    if (visited.has(title)) return null;
+    if (visiting.has(title)) return `Cycle detected: ${[...path, title].join(' → ')}`;
+    visiting.add(title);
+    const task = taskByTitle.get(title)!;
+    for (const dep of task.dependsOn) {
+      const err = visit(dep, [...path, title]);
+      if (err) return err;
+    }
+    visiting.delete(title);
+    visited.add(title);
+    sorted.push(task);
+    return null;
+  }
+
+  for (const task of template.tasks) {
+    const cycleErr = visit(task.title, []);
+    if (cycleErr) return { error: cycleErr };
+  }
+
+  // --- Creation pass: tasks in topological order, all deps resolved ---
   const parent = tm.create({
     title: opts.name || template.name,
     description: opts.description || template.description || '',
@@ -126,11 +152,9 @@ export function launchTemplate(
   const titleToId = new Map<string, string>();
   const subTasks: Task[] = [];
 
-  for (const tplTask of template.tasks) {
-    // Resolve dependsOn titles to actual task IDs
-    const resolvedDeps = tplTask.dependsOn
-      .map(title => titleToId.get(title))
-      .filter((id): id is string => id !== undefined);
+  for (const tplTask of sorted) {
+    // Resolve dependsOn titles to actual task IDs — all deps guaranteed present after topo sort
+    const resolvedDeps = tplTask.dependsOn.map(title => titleToId.get(title)!) ;
 
     const sub = tm.create({
       title: tplTask.title,
