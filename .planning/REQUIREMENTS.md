@@ -7,10 +7,10 @@
 
 ### Worker Runtime
 
-- [ ] **WKRT-01**: Worker adapter is a TypeScript module (not bash script) with typed interface: startSession(), runTask(), cancelTask(), collectResult()
-- [ ] **WKRT-02**: Each harness (Claude, Codex, Gemini) declares capabilities via a typed profile: supportsStreaming, supportsPersistentSession, supportsPlanMode, supportsStructuredOutput
-- [ ] **WKRT-03**: Task completion produces a structured result object (conclusion, decisionReason, keyFindings, artifacts) per taskKind — not raw text
-- [ ] **WKRT-04**: Tool registry exposes available worker tools (memory.search, memory.write, task.create, board.read, feishu.send) as self-describing objects with capability declarations (isReadOnly, isConcurrencySafe)
+- [x] **WKRT-01**: Worker adapter is a TypeScript module (not bash script) with typed interface: startSession(), runTask(), cancelTask(), collectResult()
+- [x] **WKRT-02**: Each harness (Claude, Codex, Gemini) declares capabilities via a typed profile: supportsStreaming, supportsPersistentSession, supportsPlanMode, supportsStructuredOutput
+- [x] **WKRT-03**: Task completion produces a structured result object (conclusion, decisionReason, keyFindings, artifacts) per taskKind — not raw text
+- [x] **WKRT-04**: Tool registry exposes available worker tools (memory.search, memory.write, task.create, board.read, feishu.send) as self-describing objects with capability declarations (isReadOnly, isConcurrencySafe)
 
 ### Structured Memory
 
@@ -62,10 +62,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| WKRT-01 | Phase 4 | Pending |
-| WKRT-02 | Phase 4 | Pending |
-| WKRT-03 | Phase 4 | Pending |
-| WKRT-04 | Phase 4 | Pending |
+| WKRT-01 | Phase 4 | Complete |
+| WKRT-02 | Phase 4 | Complete |
+| WKRT-03 | Phase 4 | Complete |
+| WKRT-04 | Phase 4 | Complete |
 | SMEM-01 | Phase 5 | Pending |
 | SMEM-02 | Phase 5 | Pending |
 | HINJ-01 | Phase 5 | Pending |
