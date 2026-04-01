@@ -127,4 +127,165 @@ describe('DependencyUnblocker', () => {
     // No crash = pass
     expect(true).toBe(true);
   });
+
+  describe('Synthesis trigger', () => {
+    it('creates synthesize task when all siblings of coordinate parent are done', () => {
+      // Create coordinate parent
+      const parent = tm.create({
+        title: 'Coordinate Goal',
+        description: 'Big task',
+        requiredCapabilities: ['research'],
+        createdBy: 'test',
+        taskKind: 'coordinate',
+      });
+      // Claim and move to working
+      tm.claim(parent.id, 'agent-1', parent.version);
+      tm.transition(parent.id, 'working', 'agent-1', parent.version + 1);
+
+      // Create two sub-tasks
+      const sub1 = tm.create({
+        title: 'Sub 1',
+        description: '',
+        requiredCapabilities: ['research'],
+        createdBy: 'coordinator',
+        taskKind: 'execute',
+        parentTaskId: parent.id,
+      });
+      const sub2 = tm.create({
+        title: 'Sub 2',
+        description: '',
+        requiredCapabilities: ['research'],
+        createdBy: 'coordinator',
+        taskKind: 'execute',
+        parentTaskId: parent.id,
+      });
+
+      // Complete sub1
+      tm.claim(sub1.id, 'agent-1', sub1.version);
+      tm.transition(sub1.id, 'working', 'agent-1', sub1.version + 1);
+      tm.transition(sub1.id, 'done', 'agent-1', sub1.version + 2, { result: 'result-1' });
+      bus.emit({ type: 'task.completed', data: { taskId: sub1.id } });
+
+      // No synthesize task yet
+      const midSynth = tm.getAll().filter(t => t.taskKind === 'synthesize');
+      expect(midSynth.length).toBe(0);
+
+      // Complete sub2
+      tm.claim(sub2.id, 'agent-1', sub2.version);
+      tm.transition(sub2.id, 'working', 'agent-1', sub2.version + 1);
+      tm.transition(sub2.id, 'done', 'agent-1', sub2.version + 2, { result: 'result-2' });
+      bus.emit({ type: 'task.completed', data: { taskId: sub2.id } });
+
+      // Now synthesize task should exist
+      const synthTasks = tm.getAll().filter(t => t.taskKind === 'synthesize');
+      expect(synthTasks.length).toBe(1);
+      expect(synthTasks[0].parentTaskId).toBe(parent.id);
+      expect(synthTasks[0].title).toContain('Synthesize');
+      expect(synthTasks[0].requiredCapabilities).toEqual(['research']);
+
+      // contextRef should contain sibling results
+      const ctx = JSON.parse(synthTasks[0].contextRef as string);
+      expect(ctx).toHaveLength(2);
+      expect(ctx[0].result).toBe('result-1');
+      expect(ctx[1].result).toBe('result-2');
+    });
+
+    it('does NOT trigger synthesis when some siblings still pending', () => {
+      const parent = tm.create({
+        title: 'Coordinate',
+        description: '',
+        requiredCapabilities: ['research'],
+        createdBy: 'test',
+        taskKind: 'coordinate',
+      });
+      tm.claim(parent.id, 'agent-1', parent.version);
+      tm.transition(parent.id, 'working', 'agent-1', parent.version + 1);
+
+      const sub1 = tm.create({
+        title: 'Sub 1', description: '', requiredCapabilities: ['research'],
+        createdBy: 'coordinator', taskKind: 'execute', parentTaskId: parent.id,
+      });
+      tm.create({
+        title: 'Sub 2', description: '', requiredCapabilities: ['research'],
+        createdBy: 'coordinator', taskKind: 'execute', parentTaskId: parent.id,
+      });
+
+      // Complete only sub1
+      tm.claim(sub1.id, 'agent-1', sub1.version);
+      tm.transition(sub1.id, 'working', 'agent-1', sub1.version + 1);
+      tm.transition(sub1.id, 'done', 'agent-1', sub1.version + 2, { result: 'done' });
+      bus.emit({ type: 'task.completed', data: { taskId: sub1.id } });
+
+      const synthTasks = tm.getAll().filter(t => t.taskKind === 'synthesize');
+      expect(synthTasks.length).toBe(0);
+    });
+
+    it('does NOT trigger synthesis for non-coordinate parent', () => {
+      const parent = tm.create({
+        title: 'Execute Parent',
+        description: '',
+        requiredCapabilities: ['research'],
+        createdBy: 'test',
+        taskKind: 'execute',
+      });
+
+      const sub1 = tm.create({
+        title: 'Sub 1', description: '', requiredCapabilities: ['research'],
+        createdBy: 'test', taskKind: 'execute', parentTaskId: parent.id,
+      });
+
+      tm.claim(sub1.id, 'agent-1', sub1.version);
+      tm.transition(sub1.id, 'working', 'agent-1', sub1.version + 1);
+      tm.transition(sub1.id, 'done', 'agent-1', sub1.version + 2, { result: 'done' });
+      bus.emit({ type: 'task.completed', data: { taskId: sub1.id } });
+
+      const synthTasks = tm.getAll().filter(t => t.taskKind === 'synthesize');
+      expect(synthTasks.length).toBe(0);
+    });
+
+    it('transitions parent to done when synthesize task completes', () => {
+      const parent = tm.create({
+        title: 'Coordinate Goal',
+        description: '',
+        requiredCapabilities: ['research'],
+        createdBy: 'test',
+        taskKind: 'coordinate',
+      });
+      tm.claim(parent.id, 'agent-1', parent.version);
+      tm.transition(parent.id, 'working', 'agent-1', parent.version + 1);
+
+      // Create and complete single sub-task
+      const sub1 = tm.create({
+        title: 'Sub 1', description: '', requiredCapabilities: ['research'],
+        createdBy: 'coordinator', taskKind: 'execute', parentTaskId: parent.id,
+      });
+      tm.claim(sub1.id, 'agent-1', sub1.version);
+      tm.transition(sub1.id, 'working', 'agent-1', sub1.version + 1);
+      tm.transition(sub1.id, 'done', 'agent-1', sub1.version + 2, { result: 'sub-result' });
+      bus.emit({ type: 'task.completed', data: { taskId: sub1.id } });
+
+      // Synthesize task should be created (and auto-assigned/claimed by dispatcher)
+      const synthTask = tm.getAll().find(t => t.taskKind === 'synthesize')!;
+      expect(synthTask).toBeDefined();
+
+      // Complete the synthesize task (already claimed by auto-assign)
+      const currentSynth = tm.get(synthTask.id)!;
+      const startVersion = currentSynth.version;
+      if (currentSynth.status === 'pending') {
+        tm.claim(synthTask.id, 'agent-1', startVersion);
+        tm.transition(synthTask.id, 'working', 'agent-1', startVersion + 1);
+        tm.transition(synthTask.id, 'done', 'agent-1', startVersion + 2, { result: 'synthesized output' });
+      } else {
+        // Already claimed by dispatcher
+        tm.transition(synthTask.id, 'working', currentSynth.assignee, startVersion);
+        tm.transition(synthTask.id, 'done', currentSynth.assignee, startVersion + 1, { result: 'synthesized output' });
+      }
+      bus.emit({ type: 'task.completed', data: { taskId: synthTask.id } });
+
+      // Parent should now be done
+      const updatedParent = tm.get(parent.id)!;
+      expect(updatedParent.status).toBe('done');
+      expect(updatedParent.result).toBe('synthesized output');
+    });
+  });
 });
