@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Intelligence Layer
 status: verifying
-stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-04-01T05:52:06.568Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-04-01T05:52:08.692Z"
 last_activity: 2026-04-01
 progress:
   total_phases: 4
@@ -80,6 +80,7 @@ Recent decisions affecting current work:
 - [Phase 04]: Adapter factory pattern with switch on HIVE_HARNESS for runtime adapter selection
 - [Phase 05]: LlmClient injectable interface for testability; extractWithLLM two-pass with graceful fallback (D-03)
 - [Phase 05]: LlmClient interface defined locally in history-injector.ts to avoid cross-package dependency on @hive/worker
+- [Phase 05]: Added reusableFor to StructuredResult type for clean contract (no any-cast)
 
 ### Pending Todos
 
@@ -98,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-01T05:51:58.349Z
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-04-01T05:52:08.690Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
