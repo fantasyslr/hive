@@ -104,8 +104,8 @@ Plans:
 
 Plans:
 - [x] 05-01-PLAN.md — Type contracts (MemoryConclusion extension, HistoryContext) + extractWithLLM utility + LlmClient (SMEM-01, SMEM-02)
-- [ ] 05-02-PLAN.md — Wire LLM extraction into MemoryService.writeConclusion with structured storage (SMEM-01, SMEM-02)
-- [ ] 05-03-PLAN.md — HistoryInjector with dual-channel retrieval + wire into Dispatcher.autoAssign (HINJ-01, HINJ-02, HINJ-03)
+- [x] 05-02-PLAN.md — Wire LLM extraction into MemoryService.writeConclusion with structured storage (SMEM-01, SMEM-02)
+- [x] 05-03-PLAN.md — HistoryInjector with dual-channel retrieval + wire into Dispatcher.autoAssign (HINJ-01, HINJ-02, HINJ-03)
 
 ### Phase 6: Coordinator + Session Mode
 **Goal**: Complex goals decompose into ordered sub-task DAGs that execute and synthesize results automatically; workers can maintain context across consecutive tasks

@@ -19,9 +19,9 @@
 
 ### History Injection
 
-- [ ] **HINJ-01**: Before task assignment, system auto-searches related historical conclusions using title+description (top-3)
-- [ ] **HINJ-02**: Matched historical conclusions injected into task contextRef so agents see prior work in task payload
-- [ ] **HINJ-03**: Dual-channel retrieval — cosine fast path + LLM selection fallback for low-score results
+- [x] **HINJ-01**: Before task assignment, system auto-searches related historical conclusions using title+description (top-3)
+- [x] **HINJ-02**: Matched historical conclusions injected into task contextRef so agents see prior work in task payload
+- [x] **HINJ-03**: Dual-channel retrieval — cosine fast path + LLM selection fallback for low-score results
 
 ### Coordinator Agent
 
@@ -68,9 +68,9 @@
 | WKRT-04 | Phase 4 | Complete |
 | SMEM-01 | Phase 5 | Complete |
 | SMEM-02 | Phase 5 | Complete |
-| HINJ-01 | Phase 5 | Pending |
-| HINJ-02 | Phase 5 | Pending |
-| HINJ-03 | Phase 5 | Pending |
+| HINJ-01 | Phase 5 | Complete |
+| HINJ-02 | Phase 5 | Complete |
+| HINJ-03 | Phase 5 | Complete |
 | CORD-01 | Phase 6 | Pending |
 | CORD-02 | Phase 6 | Pending |
 | CORD-03 | Phase 6 | Pending |
