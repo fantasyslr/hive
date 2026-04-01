@@ -1,42 +1,7 @@
 #!/usr/bin/env tsx
-import { spawn } from 'node:child_process';
-
-interface AgentCard {
-  agent_id: string;
-  name: string;
-  capabilities: string[];
-  interests: string[];
-  endpoint: string;
-  status: 'online' | 'offline';
-  registeredAt: string;
-  lastSeenAt: string;
-}
-
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  requiredCapabilities: string[];
-  status: 'pending' | 'claimed' | 'working' | 'done' | 'failed';
-  assignee: string | null;
-  createdBy: string;
-  result: string | null;
-  error: string | null;
-  version: number;
-  createdAt: string;
-  updatedAt: string;
-  taskKind?: string;
-  fromAgentId?: string;
-  toAgentId?: string;
-  parentTaskId?: string;
-  runId?: string;
-}
-
-interface BoardSnapshot {
-  agents: AgentCard[];
-  tasks: Task[];
-  timestamp: string;
-}
+import { ClaudeAdapter, GeminiAdapter, CodexAdapter } from '@hive/worker';
+import type { HarnessAdapter, TaskPayload, StructuredResult } from '@hive/worker';
+import type { Task, BoardSnapshot } from '@hive/shared';
 
 const GATEWAY = process.env.GATEWAY ?? 'http://localhost:3000';
 const AGENT_ID = process.env.HIVE_AGENT_ID ?? '';
@@ -46,14 +11,25 @@ const CAPABILITIES = (process.env.HIVE_CAPABILITIES ?? '').split(',').map(s => s
 const INTERESTS = (process.env.HIVE_INTERESTS ?? '').split(',').map(s => s.trim()).filter(Boolean);
 const POLL_MS = parseInt(process.env.HIVE_POLL_MS ?? '10000', 10);
 const HEARTBEAT_MS = parseInt(process.env.HIVE_HEARTBEAT_MS ?? '15000', 10);
-const WORKER_COMMAND = process.env.HIVE_WORKER_COMMAND ?? '';
+const HIVE_HARNESS = process.env.HIVE_HARNESS ?? 'claude';
 const APPROVAL_AGENT_ID = process.env.HIVE_APPROVAL_AGENT_ID ?? 'claude-main';
 const REQUIRE_APPROVAL = (process.env.HIVE_REQUIRE_APPROVAL ?? 'false').toLowerCase() === 'true';
 
-if (!AGENT_ID || CAPABILITIES.length === 0 || !WORKER_COMMAND) {
-  console.error('Missing required env vars: HIVE_AGENT_ID, HIVE_CAPABILITIES, HIVE_WORKER_COMMAND');
+if (!AGENT_ID || CAPABILITIES.length === 0) {
+  console.error('Missing required env vars: HIVE_AGENT_ID, HIVE_CAPABILITIES');
   process.exit(1);
 }
+
+function createAdapter(harness: string): HarnessAdapter {
+  switch (harness) {
+    case 'claude': return new ClaudeAdapter();
+    case 'gemini': return new GeminiAdapter();
+    case 'codex': return new CodexAdapter();
+    default: throw new Error(`Unknown harness: ${harness}`);
+  }
+}
+
+const adapter = createAdapter(HIVE_HARNESS);
 
 let stopping = false;
 let isProcessing = false;
@@ -90,9 +66,11 @@ async function register(): Promise<void> {
       capabilities: CAPABILITIES,
       interests: INTERESTS,
       endpoint: ENDPOINT,
+      harnessCapabilities: adapter.capabilities,
+      harnessTools: adapter.harnessTools,
     }),
   });
-  console.log(`[bridge] registered ${AGENT_ID}`);
+  console.log(`[bridge] registered ${AGENT_ID} (harness: ${adapter.name})`);
 }
 
 async function heartbeatLoop(): Promise<void> {
@@ -144,56 +122,25 @@ async function requestApproval(task: Task): Promise<'approved' | 'rejected'> {
   }
 }
 
-function renderPrompt(task: Task): string {
-  return WORKER_COMMAND
-    .replaceAll('{{TASK_ID}}', task.id)
-    .replaceAll('{{TASK_TITLE}}', task.title)
-    .replaceAll('{{TASK_DESCRIPTION}}', task.description)
-    .replaceAll('{{TASK_JSON}}', JSON.stringify(task).replaceAll('"', '\\"'));
-}
-
-function buildTaskEnv(task: Task & { memoryContext?: string }): NodeJS.ProcessEnv {
-  return {
-    ...process.env,
-    HIVE_TASK_ID: task.id,
-    HIVE_TASK_TITLE: task.title,
-    HIVE_TASK_DESCRIPTION: task.description,
-    HIVE_TASK_JSON: JSON.stringify(task),
-    HIVE_MEMORY_CONTEXT: (task as any).memoryContext ?? '',
-  };
-}
-
-async function runWorker(task: Task): Promise<{ ok: boolean; result?: string; error?: string }> {
+async function runWorker(task: Task & { memoryContext?: string }): Promise<{ ok: boolean; result?: string; error?: string }> {
   const decision = await requestApproval(task);
   if (decision !== 'approved') {
     return { ok: false, error: 'Rejected by approval agent' };
   }
 
-  const command = renderPrompt(task);
-  console.log(`[bridge] executing task ${task.id}: ${task.title}`);
+  console.log(`[bridge] executing task ${task.id}: ${task.title} (adapter: ${adapter.name})`);
 
-  return new Promise((resolve) => {
-    const child = spawn('/bin/bash', ['-lc', command], {
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env: buildTaskEnv(task),
-    });
-
-    let stdout = '';
-    let stderr = '';
-    child.stdout.on('data', (chunk) => {
-      stdout += chunk.toString();
-    });
-    child.stderr.on('data', (chunk) => {
-      stderr += chunk.toString();
-    });
-    child.on('close', (code) => {
-      if (code === 0) {
-        resolve({ ok: true, result: stdout.trim() || '(no stdout)' });
-      } else {
-        resolve({ ok: false, error: (stderr || stdout || `exit ${code}`).trim() });
-      }
-    });
-  });
+  try {
+    const payload: TaskPayload = {
+      ...task,
+      memoryContext: (task as any).memoryContext ?? undefined,
+    };
+    const structuredResult: StructuredResult = await adapter.execute(payload);
+    return { ok: true, result: JSON.stringify(structuredResult) };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { ok: false, error: message };
+  }
 }
 
 async function processClaimedTask(task: Task): Promise<void> {
