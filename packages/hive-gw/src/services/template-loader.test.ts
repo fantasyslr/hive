@@ -55,6 +55,19 @@ describe('template-loader', () => {
     expect(getTemplate('nonexistent')).toBeUndefined();
   });
 
+  it('startTemplateWatcher does not throw when directory does not exist', async () => {
+    const missingDir = join(tmpdir(), 'nonexistent-hive-tpl-' + Date.now());
+    // Should not throw — gracefully skip
+    await expect(startTemplateWatcher(missingDir)).resolves.not.toThrow();
+  });
+
+  it('getAllTemplates returns empty array after starting with missing directory', async () => {
+    stopTemplateWatcher(); // clear any prior state
+    const missingDir = join(tmpdir(), 'nonexistent-hive-tpl-' + Date.now());
+    await startTemplateWatcher(missingDir);
+    expect(getAllTemplates()).toEqual([]);
+  });
+
   it('template tasks have required fields: title, role, capabilities, dependsOn', async () => {
     const tpl = {
       id: 'fields-check',
