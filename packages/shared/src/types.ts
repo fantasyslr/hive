@@ -4,6 +4,19 @@ export interface AgentCard {
   capabilities: string[];
   interests: string[];
   endpoint: string;
+  // Phase 4: Worker runtime extensions (optional, backward-compatible)
+  harnessCapabilities?: {
+    supportsStructuredOutput: boolean;
+    supportsPersistentSession: boolean;
+    supportsStreaming: boolean;
+    maxContextTokens: number;
+  };
+  harnessTools?: Array<{
+    name: string;
+    description: string;
+    isReadOnly: boolean;
+    isConcurrencySafe: boolean;
+  }>;
 }
 
 export interface RegisteredAgent extends AgentCard {

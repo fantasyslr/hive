@@ -1,12 +1,36 @@
 import { z } from 'zod/v4';
 import { AGENT_PUBLISHABLE_EVENT_TYPES } from './constants.js';
 
+export const HarnessCapabilitiesSchema = z.object({
+  supportsStructuredOutput: z.boolean(),
+  supportsPersistentSession: z.boolean(),
+  supportsStreaming: z.boolean(),
+  maxContextTokens: z.number().int().positive(),
+});
+
+export const HarnessToolSchema = z.object({
+  name: z.string().min(1),
+  description: z.string(),
+  isReadOnly: z.boolean(),
+  isConcurrencySafe: z.boolean(),
+});
+
+export const StructuredResultSchema = z.object({
+  conclusion: z.string(),
+  decisionReason: z.string().default(''),
+  keyFindings: z.array(z.string()).default([]),
+  artifacts: z.array(z.string()).default([]),
+  raw: z.string(),
+});
+
 export const AgentRegistrationSchema = z.object({
   agentId: z.string().min(1).max(64),
   name: z.string().min(1).max(128),
   capabilities: z.array(z.string().min(1)).min(1),
   interests: z.array(z.string()).default([]),
   endpoint: z.string().url(),
+  harnessCapabilities: HarnessCapabilitiesSchema.optional(),
+  harnessTools: z.array(HarnessToolSchema).optional(),
 });
 
 export const CreateTaskSchema = z.object({
