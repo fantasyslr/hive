@@ -1,6 +1,7 @@
-import { spawn } from 'node:child_process';
+import { spawn, type ChildProcess } from 'node:child_process';
 import type { HarnessAdapter, HarnessCapabilities, ToolDefinition, TaskPayload, StructuredResult } from '../types.js';
 import { extractStructuredResult } from '../extract-result.js';
+import { SessionManager } from '../session-manager.js';
 
 export class ClaudeAdapter implements HarnessAdapter {
   readonly name = 'claude';
@@ -18,10 +19,28 @@ export class ClaudeAdapter implements HarnessAdapter {
     { name: 'web.search', description: 'Search the web', isReadOnly: true, isConcurrencySafe: true },
   ];
 
-  private childProcess: ReturnType<typeof spawn> | null = null;
+  private childProcess: ChildProcess | null = null;
+  private sessionManager = new SessionManager();
+  private activeSessions = new Map<string, ChildProcess>();
 
   async execute(task: TaskPayload): Promise<StructuredResult> {
     const prompt = this.buildPrompt(task);
+
+    // If task has runId and an active session exists, use persistent mode
+    if (task.runId && this.sessionManager.isActive(task.runId)) {
+      try {
+        const raw = await this.writeToSession(task.runId, prompt);
+        this.sessionManager.touch(task.runId);
+        return extractStructuredResult(raw);
+      } catch (err) {
+        // Fallback to one-shot on persistent session failure (D-10)
+        console.warn(`[ClaudeAdapter] Persistent session failed for run ${task.runId}, falling back to one-shot:`, err);
+        this.sessionManager.unregister(task.runId);
+        this.activeSessions.delete(task.runId);
+      }
+    }
+
+    // One-shot mode (default)
     const raw = await this.spawnCLI(prompt, task);
     return extractStructuredResult(raw);
   }
@@ -30,6 +49,49 @@ export class ClaudeAdapter implements HarnessAdapter {
     if (this.childProcess && !this.childProcess.killed) {
       this.childProcess.kill('SIGTERM');
     }
+  }
+
+  /** Start a persistent session for a runId — keeps claude CLI process alive */
+  async startSession(runId: string): Promise<void> {
+    if (this.activeSessions.has(runId)) return;
+
+    const child = spawn('claude', ['--conversation'], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+
+    child.on('error', (err) => {
+      console.warn(`[ClaudeAdapter] Session process error for run ${runId}:`, err);
+      this.sessionManager.unregister(runId);
+      this.activeSessions.delete(runId);
+    });
+
+    child.on('close', () => {
+      this.sessionManager.unregister(runId);
+      this.activeSessions.delete(runId);
+    });
+
+    this.activeSessions.set(runId, child);
+    this.sessionManager.register(runId, child.pid!);
+  }
+
+  /** Resume a session — start if not active (graceful fallback per D-10) */
+  async resumeSession(runId: string): Promise<void> {
+    if (this.sessionManager.isActive(runId)) {
+      this.sessionManager.touch(runId);
+      return;
+    }
+    console.warn(`[ClaudeAdapter] Session for run ${runId} not active, starting new session (fallback)`);
+    await this.startSession(runId);
+  }
+
+  /** End a persistent session — kill process and clean up */
+  async endSession(runId: string): Promise<void> {
+    const child = this.activeSessions.get(runId);
+    if (child && !child.killed) {
+      child.kill('SIGTERM');
+    }
+    this.activeSessions.delete(runId);
+    this.sessionManager.unregister(runId);
   }
 
   private buildPrompt(task: TaskPayload): string {
@@ -45,6 +107,43 @@ export class ClaudeAdapter implements HarnessAdapter {
     return parts.join('\n');
   }
 
+  /** Write prompt to an existing persistent session and collect response */
+  private writeToSession(runId: string, prompt: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const child = this.activeSessions.get(runId);
+      if (!child || child.killed) {
+        reject(new Error(`No active session for run ${runId}`));
+        return;
+      }
+
+      let stdout = '';
+      const onData = (chunk: Buffer) => { stdout += chunk.toString(); };
+      child.stdout!.on('data', onData);
+
+      // Use a delimiter to detect end of response
+      const delimiter = `__HIVE_END_${Date.now()}__`;
+      child.stdin!.write(`${prompt}\n\nWhen done, output exactly: ${delimiter}\n`);
+
+      const timeout = setTimeout(() => {
+        child.stdout!.removeListener('data', onData);
+        // Return what we have even on timeout
+        resolve(stdout.trim());
+      }, 120_000);
+
+      const checkComplete = () => {
+        if (stdout.includes(delimiter)) {
+          clearTimeout(timeout);
+          child.stdout!.removeListener('data', onData);
+          resolve(stdout.replace(delimiter, '').trim());
+        } else {
+          setTimeout(checkComplete, 100);
+        }
+      };
+      checkComplete();
+    });
+  }
+
+  /** One-shot spawn — original behavior */
   private spawnCLI(prompt: string, task: TaskPayload): Promise<string> {
     return new Promise((resolve, reject) => {
       const child = spawn('claude', ['-p', '-'], {

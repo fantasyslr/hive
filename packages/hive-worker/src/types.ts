@@ -39,6 +39,8 @@ export interface RegisteredTool extends ToolDefinition {
 /** Task payload sent to adapter — extends Task with memory context */
 export interface TaskPayload extends Task {
   memoryContext?: string;
+  /** Phase 6: Run identifier for persistent session grouping */
+  runId?: string;
 }
 
 /** Per D-01: Medium-thickness adapter interface */
