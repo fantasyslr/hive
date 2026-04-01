@@ -103,9 +103,10 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260330-vj7 | Hive Web kanban UI MVP | 2026-03-30 | eba3189 | [260330-vj7-hive-web-kanban-ui-mvp](./quick/260330-vj7-hive-web-kanban-ui-mvp/) |
+| 260401-o5w | Fix template watcher crash + DAG validation | 2026-04-01 | bb66c00, fde0a8f | [260401-o5w-fix-template-watcher-crash-and-dag-valid](./quick/260401-o5w-fix-template-watcher-crash-and-dag-valid/) |
 
 ## Session Continuity
 
-Last session: 2026-03-31T02:32:33.896Z
-Stopped at: Completed 03-02-PLAN.md (template launch route)
+Last session: 2026-04-01T09:29:00Z
+Stopped at: Completed 260401-o5w (fix template watcher crash and DAG validation)
 Resume file: None
