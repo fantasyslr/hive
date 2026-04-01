@@ -1,5 +1,7 @@
 import type { Task, MemoryConclusion } from '@hive/shared';
 import { MEMORY_NAMESPACES } from '@hive/shared';
+import { extractWithLLM } from '@hive/worker';
+import type { LlmClient, StructuredResult } from '@hive/worker';
 import type { MemoryClient } from './memory-client.js';
 import type { EventBus } from './event-bus.js';
 import type { TaskMachine } from './task-machine.js';
@@ -15,13 +17,15 @@ export class MemoryService {
   private client: MemoryClient;
   private bus: EventBus;
   private tasks: TaskMachine;
+  private llmClient: LlmClient | null;
   private toolNames: ToolNames | null = null;
   private ready = false;
 
-  constructor(client: MemoryClient, bus: EventBus, tasks: TaskMachine) {
+  constructor(client: MemoryClient, bus: EventBus, tasks: TaskMachine, llmClient?: LlmClient) {
     this.client = client;
     this.bus = bus;
     this.tasks = tasks;
+    this.llmClient = llmClient ?? null;
   }
 
   async init(): Promise<boolean> {
@@ -69,17 +73,36 @@ export class MemoryService {
   async writeConclusion(task: Task): Promise<string | null> {
     if (!this.ready || !this.toolNames) return null;
 
+    // LLM extraction pass — per D-02, D-04
+    let extracted: StructuredResult = {
+      conclusion: task.result ?? '',
+      decisionReason: '',
+      keyFindings: [],
+      artifacts: [],
+      reusableFor: [],
+      raw: task.result ?? '',
+    };
+
+    if (this.llmClient && task.result) {
+      try {
+        extracted = await extractWithLLM(task.result, this.llmClient);
+      } catch (err) {
+        // Per D-03: extraction failure logged, use raw fallback
+        logger.warn({ err, taskId: task.id }, 'LLM extraction failed, using raw fallback');
+      }
+    }
+
     const namespace = `${MEMORY_NAMESPACES.PUBLIC_CONCLUSIONS}/${task.id}`;
     const conclusion: MemoryConclusion = {
       taskId: task.id,
       agentId: task.assignee ?? 'unknown',
-      conclusion: task.result ?? '',
-      decisionReason: '',
+      conclusion: extracted.conclusion,
+      decisionReason: extracted.decisionReason,
       impactScope: '',
       timestamp: new Date().toISOString(),
       namespace,
-      reusableFor: [],   // populated by LLM extraction in Phase 5
-      keyFindings: [],   // populated by LLM extraction in Phase 5
+      reusableFor: extracted.reusableFor ?? [],
+      keyFindings: extracted.keyFindings,
     };
 
     try {
@@ -89,6 +112,7 @@ export class MemoryService {
         namespace: MEMORY_NAMESPACES.PUBLIC_CONCLUSIONS,
         agentId: task.assignee ?? 'unknown',
         taskId: task.id,
+        tags: conclusion.reusableFor,  // Per D-06: tags for filtered search
       });
 
       this.bus.emit({
@@ -97,7 +121,7 @@ export class MemoryService {
       });
 
       const ref = `mem://${namespace}`;
-      logger.info({ taskId: task.id, ref }, 'Conclusion written to memory');
+      logger.info({ taskId: task.id, ref, hasLlm: !!this.llmClient }, 'Conclusion written to memory');
       return ref;
     } catch (err) {
       logger.error({ err, taskId: task.id }, 'Failed to write conclusion to memory');

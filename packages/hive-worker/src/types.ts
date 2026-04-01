@@ -14,6 +14,7 @@ export interface StructuredResult {
   decisionReason: string;
   keyFindings: string[];
   artifacts: string[];
+  reusableFor: string[];
   raw: string;
 }
 

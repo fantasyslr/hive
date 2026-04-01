@@ -7,6 +7,7 @@ function rawFallback(raw: string): StructuredResult {
     decisionReason: '',
     keyFindings: [],
     artifacts: [],
+    reusableFor: [],
     raw,
   };
 }
@@ -35,6 +36,7 @@ export function extractStructuredResult(raw: string): StructuredResult {
         decisionReason: parsed.decisionReason ?? '',
         keyFindings: Array.isArray(parsed.keyFindings) ? parsed.keyFindings : [],
         artifacts: Array.isArray(parsed.artifacts) ? parsed.artifacts : [],
+        reusableFor: Array.isArray(parsed.reusableFor) ? parsed.reusableFor : [],
         raw,
       };
     }

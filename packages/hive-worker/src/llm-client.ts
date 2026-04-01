@@ -35,10 +35,10 @@ export async function extractWithLLM(raw: string, llmClient: LlmClient): Promise
       return { ...extracted, raw };
     }
     // LLM didn't return parseable JSON — rawFallback
-    return { conclusion: raw, decisionReason: '', keyFindings: [], artifacts: [], raw };
+    return { conclusion: raw, decisionReason: '', keyFindings: [], artifacts: [], reusableFor: [], raw };
   } catch {
     // Per D-03: extraction failure never blocks — return rawFallback
-    return { conclusion: raw, decisionReason: '', keyFindings: [], artifacts: [], raw };
+    return { conclusion: raw, decisionReason: '', keyFindings: [], artifacts: [], reusableFor: [], raw };
   }
 }
 
