@@ -14,8 +14,8 @@
 
 ### Structured Memory
 
-- [ ] **SMEM-01**: Task completion triggers LLM extraction (via side query) of structured conclusion from task result — extraction failure never blocks task flow
-- [ ] **SMEM-02**: Structured conclusions stored in memory with all extracted fields individually searchable (conclusion, decisionReason, keyFindings, reusableFor)
+- [x] **SMEM-01**: Task completion triggers LLM extraction (via side query) of structured conclusion from task result — extraction failure never blocks task flow
+- [x] **SMEM-02**: Structured conclusions stored in memory with all extracted fields individually searchable (conclusion, decisionReason, keyFindings, reusableFor)
 
 ### History Injection
 
@@ -66,8 +66,8 @@
 | WKRT-02 | Phase 4 | Complete |
 | WKRT-03 | Phase 4 | Complete |
 | WKRT-04 | Phase 4 | Complete |
-| SMEM-01 | Phase 5 | Pending |
-| SMEM-02 | Phase 5 | Pending |
+| SMEM-01 | Phase 5 | Complete |
+| SMEM-02 | Phase 5 | Complete |
 | HINJ-01 | Phase 5 | Pending |
 | HINJ-02 | Phase 5 | Pending |
 | HINJ-03 | Phase 5 | Pending |

@@ -103,7 +103,7 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Type contracts (MemoryConclusion extension, HistoryContext) + extractWithLLM utility + LlmClient (SMEM-01, SMEM-02)
+- [x] 05-01-PLAN.md — Type contracts (MemoryConclusion extension, HistoryContext) + extractWithLLM utility + LlmClient (SMEM-01, SMEM-02)
 - [ ] 05-02-PLAN.md — Wire LLM extraction into MemoryService.writeConclusion with structured storage (SMEM-01, SMEM-02)
 - [ ] 05-03-PLAN.md — HistoryInjector with dual-channel retrieval + wire into Dispatcher.autoAssign (HINJ-01, HINJ-02, HINJ-03)
 
