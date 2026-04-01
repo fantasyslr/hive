@@ -78,6 +78,8 @@ export class MemoryService {
       impactScope: '',
       timestamp: new Date().toISOString(),
       namespace,
+      reusableFor: [],   // populated by LLM extraction in Phase 5
+      keyFindings: [],   // populated by LLM extraction in Phase 5
     };
 
     try {

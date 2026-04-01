@@ -46,7 +46,7 @@ export interface Task {
   // Collaboration metadata (optional, backward-compatible)
   fromAgentId?: string;      // who created/requested this task
   toAgentId?: string;        // intended assignee (hint, not enforced)
-  contextRef?: string;        // mem:// reference for task context
+  contextRef?: string | HistoryContext[];  // mem:// reference or injected history (per D-09)
   artifacts?: string[];        // file paths or references attached to this task
   // Orchestration metadata (OMC-inspired, optional)
   taskKind?: TaskKind;        // intent: plan, execute, verify, fix, review, explore
@@ -89,6 +89,17 @@ export interface MemoryConclusion {
   impactScope: string;
   timestamp: string;
   namespace: string; // "public/conclusions/{taskId}"
+  reusableFor: string[];   // tags for filtered search (per D-05)
+  keyFindings: string[];   // individual findings from task (per D-05)
+}
+
+/** Payload for injecting relevant past conclusions into new tasks (per D-09) */
+export interface HistoryContext {
+  taskId: string;
+  conclusion: string;
+  decisionReason: string;
+  reusableFor: string[];
+  similarity: number;
 }
 
 export type HiveEventType =
