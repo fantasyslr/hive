@@ -136,6 +136,15 @@ export class TaskMachine {
     return released;
   }
 
+  /** Update dependsOn field on a task — used by batch creation for title-to-ID resolution */
+  setDependsOn(taskId: string, deps: string[]): Task | undefined {
+    const task = this.tasks.get(taskId);
+    if (!task) return undefined;
+    const updated = { ...task, dependsOn: deps, updatedAt: new Date().toISOString() };
+    this.tasks.set(taskId, updated);
+    return updated;
+  }
+
   /** Bulk-load a task from snapshot recovery — bypasses state transition validation. Only called during startup recovery. */
   restore(task: Task & { retryCount?: number }): void {
     task.retryCount = task.retryCount ?? 0;

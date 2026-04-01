@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { CreateTaskSchema, ClaimTaskSchema, UpdateTaskSchema, RetryTaskSchema } from '@hive/shared';
+import { CreateTaskSchema, ClaimTaskSchema, UpdateTaskSchema, RetryTaskSchema, BatchCreateTasksSchema } from '@hive/shared';
 import type { TaskStatus } from '@hive/shared';
 import { validate } from '../middleware/validate.js';
 import { taskMachine } from '../services/task-machine.js';
@@ -28,6 +28,75 @@ tasksRouter.post('/', validate(CreateTaskSchema), (req, res) => {
   }
 
   res.status(201).json(task);
+});
+
+tasksRouter.post('/batch', validate(BatchCreateTasksSchema), (req, res) => {
+  const { parentTaskId, tasks } = req.body as { parentTaskId: string; tasks: Array<{ title: string; description?: string; taskKind?: string; requiredCapabilities: string[]; dependsOn?: string[] }> };
+
+  // Verify parent exists
+  const parent = taskMachine.get(parentTaskId);
+  if (!parent) {
+    res.status(400).json({ error: `Parent task ${parentTaskId} not found` });
+    return;
+  }
+
+  const runId = parent.runId || parentTaskId;
+  const createdTasks: Array<ReturnType<typeof taskMachine.create>> = [];
+  const titleToId = new Map<string, string>();
+
+  // Pass 1: Create all tasks (without dependsOn resolution)
+  for (const sub of tasks) {
+    const task = taskMachine.create({
+      title: sub.title,
+      description: sub.description || '',
+      requiredCapabilities: sub.requiredCapabilities,
+      createdBy: 'coordinator',
+      taskKind: sub.taskKind,
+      parentTaskId,
+      runId,
+    });
+    createdTasks.push(task);
+    titleToId.set(sub.title, task.id);
+  }
+
+  // Pass 2: Resolve dependsOn title strings to IDs
+  for (let i = 0; i < tasks.length; i++) {
+    const subDeps = tasks[i].dependsOn;
+    if (subDeps && subDeps.length > 0) {
+      const resolvedIds: string[] = [];
+      for (const depTitle of subDeps) {
+        const depId = titleToId.get(depTitle);
+        if (!depId) {
+          // Rollback: delete all created tasks
+          for (const created of createdTasks) {
+            taskMachine.delete(created.id);
+          }
+          res.status(400).json({ error: `Dependency title "${depTitle}" not found in batch` });
+          return;
+        }
+        resolvedIds.push(depId);
+      }
+      const updated = taskMachine.setDependsOn(createdTasks[i].id, resolvedIds);
+      if (updated) createdTasks[i] = updated;
+    }
+  }
+
+  // Pass 3: Auto-assign independent tasks (no dependsOn)
+  for (let i = 0; i < createdTasks.length; i++) {
+    const task = createdTasks[i];
+    if (!task.dependsOn || task.dependsOn.length === 0) {
+      const result = dispatcher.autoAssign(task);
+      if (result) {
+        eventBus.emit({
+          type: 'task.assigned',
+          data: { taskId: result.task.id, agentId: result.agent.agentId, title: result.task.title },
+        });
+        createdTasks[i] = result.task;
+      }
+    }
+  }
+
+  res.status(201).json(createdTasks);
 });
 
 tasksRouter.get('/', (req, res) => {
