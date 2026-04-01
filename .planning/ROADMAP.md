@@ -87,7 +87,7 @@ Plans:
 - [x] 04-01-PLAN.md — Package scaffold + type contracts (HarnessAdapter, StructuredResult, ToolDefinition) + AgentCard extension (WKRT-01, WKRT-02, WKRT-03, WKRT-04)
 - [x] 04-02-PLAN.md — Three harness adapters (Claude, Gemini, Codex) + extractStructuredResult utility (WKRT-01, WKRT-02, WKRT-03)
 - [x] 04-03-PLAN.md — Two-layer tool registry + gateway AgentRegistry harness metadata (WKRT-04)
-- [ ] 04-04-PLAN.md — Worker bridge rewrite to use typed adapters + delete bash adapter (WKRT-01, WKRT-03)
+- [x] 04-04-PLAN.md — Worker bridge rewrite to use typed adapters + delete bash adapter (WKRT-01, WKRT-03)
 
 ### Phase 5: Structured Memory + History Injection
 **Goal**: Every completed task produces structured knowledge that future tasks automatically receive as context — the team genuinely never starts from scratch
