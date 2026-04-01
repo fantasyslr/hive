@@ -5,15 +5,22 @@
 
 ## v2 Requirements
 
+### Worker Runtime
+
+- [ ] **WKRT-01**: Worker adapter is a TypeScript module (not bash script) with typed interface: startSession(), runTask(), cancelTask(), collectResult()
+- [ ] **WKRT-02**: Each harness (Claude, Codex, Gemini) declares capabilities via a typed profile: supportsStreaming, supportsPersistentSession, supportsPlanMode, supportsStructuredOutput
+- [ ] **WKRT-03**: Task completion produces a structured result object (conclusion, decisionReason, keyFindings, artifacts) per taskKind — not raw text
+- [ ] **WKRT-04**: Tool registry exposes available worker tools (memory.search, memory.write, task.create, board.read, feishu.send) as self-describing objects with capability declarations (isReadOnly, isConcurrencySafe)
+
 ### Structured Memory
 
-- [ ] **SMEM-01**: Task completion triggers LLM extraction of structured conclusion (conclusion, decisionReason, keyFindings, reusableFor) from task.result
-- [ ] **SMEM-02**: Structured conclusions stored in memory with all extracted fields searchable
+- [ ] **SMEM-01**: Task completion triggers LLM extraction (via side query) of structured conclusion from task result — extraction failure never blocks task flow
+- [ ] **SMEM-02**: Structured conclusions stored in memory with all extracted fields individually searchable (conclusion, decisionReason, keyFindings, reusableFor)
 
 ### History Injection
 
 - [ ] **HINJ-01**: Before task assignment, system auto-searches related historical conclusions using title+description (top-3)
-- [ ] **HINJ-02**: Matched historical conclusions injected into task contextRef so agents see prior work
+- [ ] **HINJ-02**: Matched historical conclusions injected into task contextRef so agents see prior work in task payload
 - [ ] **HINJ-03**: Dual-channel retrieval — cosine fast path + LLM selection fallback for low-score results
 
 ### Coordinator Agent
@@ -21,6 +28,7 @@
 - [ ] **CORD-01**: New taskKind values `coordinate` and `synthesize` for task decomposition and result aggregation
 - [ ] **CORD-02**: Batch sub-task creation API — single POST creates multiple tasks with dependsOn relationships
 - [ ] **CORD-03**: Auto-create synthesize task when all sub-tasks of a coordinate task complete
+- [ ] **CORD-04**: Worker supports persistent session mode — consecutive tasks (explore → execute → fix → verify) share context without cold restart
 
 ### Hook Engine
 
@@ -31,10 +39,12 @@
 ## Future Requirements
 
 - Full-text search on memory — hash embedding O(n) scan fine for ~1000 entries
+- Context compaction for persistent worker sessions — multi-level (micro → session memory → full)
+- Worker permission model — tool gating per role/taskKind
 - Template editor UI — JSON config manually edited for now
-- Memory garbage collection — TTL marks expired but no auto-delete
-- Budget/cost tracking — requires LLM provider usage APIs
-- Agent capability auto-discovery — agents self-declare tools and limits
+- Agent memory scoping — global / board / task-local isolation
+- Memory staleness warnings — auto-caveat for old conclusions
+- Team memory sync — delta push with SHA256 hash comparison
 
 ## Out of Scope
 
@@ -45,28 +55,35 @@
 | Complex RBAC | 4 users, role field is enough |
 | Real vector DB (Pinecone etc.) | SQLite + hash embedding sufficient at team scale |
 | Agent sandboxing | Trust boundary unnecessary for internal tool |
+| Fork/worktree agent spawn modes | CC-specific, Hive uses HTTP-based agent dispatch |
+| Prompt cache optimization | Single-request workers, no multi-turn cache to optimize |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SMEM-01 | — | Pending |
-| SMEM-02 | — | Pending |
-| HINJ-01 | — | Pending |
-| HINJ-02 | — | Pending |
-| HINJ-03 | — | Pending |
-| CORD-01 | — | Pending |
-| CORD-02 | — | Pending |
-| CORD-03 | — | Pending |
-| HOOK-01 | — | Pending |
-| HOOK-02 | — | Pending |
-| HOOK-03 | — | Pending |
+| WKRT-01 | Phase 4 | Pending |
+| WKRT-02 | Phase 4 | Pending |
+| WKRT-03 | Phase 4 | Pending |
+| WKRT-04 | Phase 4 | Pending |
+| SMEM-01 | Phase 5 | Pending |
+| SMEM-02 | Phase 5 | Pending |
+| HINJ-01 | Phase 5 | Pending |
+| HINJ-02 | Phase 5 | Pending |
+| HINJ-03 | Phase 5 | Pending |
+| CORD-01 | Phase 6 | Pending |
+| CORD-02 | Phase 6 | Pending |
+| CORD-03 | Phase 6 | Pending |
+| CORD-04 | Phase 6 | Pending |
+| HOOK-01 | Phase 7 | Pending |
+| HOOK-02 | Phase 7 | Pending |
+| HOOK-03 | Phase 7 | Pending |
 
 **Coverage:**
-- v2 requirements: 11 total
-- Mapped to phases: 0
-- Unmapped: 11 ⚠️ (pending roadmap creation)
+- v2 requirements: 16 total
+- Mapped to phases: 16
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-31*
-*Last updated: 2026-03-31 after initial definition*
+*Last updated: 2026-04-01 after roadmap revision (CC source code deep dive)*

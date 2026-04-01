@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Intelligence Layer
-status: defining_requirements
+status: ready_to_plan
 stopped_at: null
 last_updated: "2026-03-31"
 last_activity: 2026-03-31
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,48 +21,37 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** Every task's process and output is captured in shared memory, so the team never starts from scratch on similar work again.
-**Current focus:** Defining v2.0 requirements — Intelligence Layer
+**Current focus:** v2.0 Intelligence Layer — Phase 4 (Worker Runtime Foundation)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 4 of 7 (Worker Runtime Foundation) — first phase of v2.0
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-31 — Milestone v2.0 started
+Status: Ready to plan
+Last activity: 2026-03-31 — Roadmap created for v2.0 Intelligence Layer
 
 Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
-**Velocity:**
-
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0 hours
+**Velocity (from v1.0):**
+- Total plans completed: 7
+- Average duration: ~275s (~4.5 min)
+- Total execution time: ~32 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| Phase 01 | 3 | ~15 min | ~5 min |
+| Phase 02 | 2 | ~11 min | ~5.5 min |
+| Phase 03 | 2 | ~7 min | ~3.5 min |
 
 **Recent Trend:**
-
-- Last 5 plans: -
-- Trend: -
+- Last 5 plans: 385s, 288s, 276s, 180s, 234s
+- Trend: Improving
 
 *Updated after each plan completion*
-| Phase 01 P02 | 95s | 2 tasks | 4 files |
-| Phase 01 P02 | 2min | 2 tasks | 4 files |
-| Phase 01 P01 | 225s | 2 tasks | 21 files |
-| Phase 01 P01 | 633 | 2 tasks | 20 files |
-| Phase 01 P03 | 161 | 2 tasks | 4 files |
-| Phase 02 P01 | 385 | 2 tasks | 4 files |
-| Phase 02-memory-enhancement P01 | 288 | 2 tasks | 4 files |
-| Phase 02 P02 | 276 | 2 tasks | 6 files |
-| Phase 03 P01 | 180 | 2 tasks | 8 files |
-| Phase 03 P02 | 221 | 2 tasks | 3 files |
-| Phase 03 P02 | 246 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -71,24 +60,11 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- Roadmap: API-01 (camelCase) bundled with AUTH in Phase 1 — field rename must happen before new features add more API surface
-- Roadmap: Memory enhancement is Phase 2 (core value) — depends on Phase 1 for consistent field names and auth context
-- [Phase 01]: Health endpoint exempt from auth for monitoring/load balancer compatibility
-- [Phase 01]: Health endpoint kept unauthenticated for monitoring/load balancer access
-- [Phase 01]: Express route URL params (req.params.agent_id) kept as-is - URL path convention
-- [Phase 01]: All API fields unified to camelCase; Express URL path params (:agent_id) kept as URL convention
-- [Phase 01]: filterTasksByRole extracted to shared util; single-task GET /:id intentionally unfiltered
-- [Phase 02]: MemoryRecord/SearchHit/SearchFilter types in @hive/shared for cross-package use
-- [Phase 02]: Content dedup uses embedding.score() (vector+token) with 0.85 threshold, only in namespaced entries
-- [Phase 02-memory-enhancement]: Types (MemoryRecord/SearchHit/SearchFilter) in @hive/shared for cross-package use
-- [Phase 02-memory-enhancement]: Dedup uses embedding.score() (combined similarity) not raw cosine; only active with non-empty namespace
-- [Phase 02-memory-enhancement]: ISO string TTL comparison instead of SQLite datetime() for consistency with app-layer timestamps
-- [Phase 02]: MemorySearchSchema namespace changed from enum to free-form string for arbitrary namespace support
-- [Phase 03]: Template loader watches entire directory (not individual files) for add/remove/change detection
-- [Phase 03]: dependsOn stores task IDs for runtime enforcement; template uses titles for human authoring
-- [Phase 03]: launchTemplate() extracted as pure function for testability — takes TaskMachine and Dispatcher as args
-- [Phase 03]: launchTemplate() extracted as pure function for testability — takes TaskMachine and Dispatcher as args
-- [Phase 03]: Template launch creates parent task with taskKind plan and requiredCapabilities orchestration
+- [v2.0 Roadmap]: Worker Runtime first — typed adapter + tool registry + structured results are the foundation
+- [v2.0 Roadmap]: SMEM+HINJ after runtime — structured result contract feeds LLM extraction; tool registry enables memory tools
+- [v2.0 Roadmap]: CORD+Session after SMEM — coordinator benefits from history injection; persistent session builds on typed runtime
+- [v2.0 Roadmap]: HOOK last — connects everything with declarative events, needs stable substrate
+- [v2.0 Roadmap revision]: CC source deep dive (freestylefly/claude-code) revealed worker runtime is prerequisite, not feature
 
 ### Pending Todos
 
@@ -96,7 +72,8 @@ None yet.
 
 ### Blockers/Concerns
 
-- Brownfield codebase: snake_case fields exist in multiple endpoints — Phase 1 rename needs careful audit of all consumers (tests, agents, frontend)
+- LLM dependency: SMEM-01 requires an LLM call on task completion — need to decide which model/provider and handle failures gracefully
+- Memory search quality: HINJ-03 dual-channel retrieval depends on current vector search being "good enough" for fast path — may need tuning
 
 ### Quick Tasks Completed
 
@@ -106,6 +83,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-31T02:32:33.896Z
-Stopped at: Completed 03-02-PLAN.md (template launch route)
+Last session: 2026-03-31
+Stopped at: v2.0 roadmap revised — 4 phases (4-7), 16 requirements mapped (added WKRT-01~04, CORD-04 after CC deep dive)
 Resume file: None
