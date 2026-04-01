@@ -94,7 +94,8 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+- **Fix template watcher crash on missing directory** [high] — `startTemplateWatcher()` crashes on clean checkout when repo-root `templates/` is absent (template-loader.ts:47-58)
+- **Harden template launch DAG validation** [high] — `launchTemplate()` silently drops unresolved dependencies instead of rejecting (templates.ts:107-119)
 
 ### Blockers/Concerns
 
