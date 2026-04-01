@@ -48,6 +48,11 @@ templatesRouter.post('/:id/launch', validate(LaunchTemplateSchema), (req, res) =
     throw new NotFoundError(`Template ${req.params.id} not found`);
   }
 
+  if ('error' in result) {
+    res.status(400).json({ error: result.error });
+    return;
+  }
+
   // Emit event for parent task
   eventBus.emit({
     type: 'task.updated',
@@ -87,11 +92,28 @@ export function launchTemplate(
   opts: { userId: string; name?: string; description?: string },
   tm: TaskMachineType,
   _dispatcher: Dispatcher,
-): { parent: Task; subTasks: Task[]; templateId: string } | undefined {
+): { parent: Task; subTasks: Task[]; templateId: string } | { error: string } | undefined {
   const template = getTemplate(templateId);
   if (!template) return undefined;
 
-  // Create parent task
+  // --- Validation pass: check for duplicate titles and unresolvable deps ---
+  const titleSet = new Set<string>();
+  for (const tplTask of template.tasks) {
+    if (titleSet.has(tplTask.title)) {
+      return { error: `Duplicate task title "${tplTask.title}" in template` };
+    }
+    titleSet.add(tplTask.title);
+  }
+
+  for (const tplTask of template.tasks) {
+    for (const depTitle of tplTask.dependsOn) {
+      if (!titleSet.has(depTitle)) {
+        return { error: `Dependency "${depTitle}" in task "${tplTask.title}" not found in template` };
+      }
+    }
+  }
+
+  // --- Creation pass: guaranteed safe after validation ---
   const parent = tm.create({
     title: opts.name || template.name,
     description: opts.description || template.description || '',

@@ -139,6 +139,43 @@ describe('Template routes', () => {
       expect(result).toBeUndefined();
     });
 
+    it('returns error for template with unresolvable dependsOn title', async () => {
+      const badTpl = {
+        id: 'bad-deps',
+        name: 'Bad Deps Template',
+        tasks: [
+          { title: 'Task A', role: 'ops', capabilities: ['research'], dependsOn: [] },
+          { title: 'Task B', role: 'ops', capabilities: ['planning'], dependsOn: ['Nonexistent Task'] },
+        ],
+      };
+      await writeFile(join(tmpDir, 'bad-deps.json'), JSON.stringify(badTpl));
+      await startTemplateWatcher(tmpDir);
+
+      const result = launchTemplate('bad-deps', { userId: 'manager' }, tm, dispatcher);
+      expect(result).toBeDefined();
+      expect(result).toHaveProperty('error');
+      expect((result as { error: string }).error).toContain('Nonexistent Task');
+      expect((result as { error: string }).error).toContain('not found in template');
+    });
+
+    it('returns error for template with duplicate task titles', async () => {
+      const dupTpl = {
+        id: 'dup-titles',
+        name: 'Duplicate Titles Template',
+        tasks: [
+          { title: 'Same Name', role: 'ops', capabilities: ['research'], dependsOn: [] },
+          { title: 'Same Name', role: 'ops', capabilities: ['planning'], dependsOn: [] },
+        ],
+      };
+      await writeFile(join(tmpDir, 'dup-titles.json'), JSON.stringify(dupTpl));
+      await startTemplateWatcher(tmpDir);
+
+      const result = launchTemplate('dup-titles', { userId: 'manager' }, tm, dispatcher);
+      expect(result).toBeDefined();
+      expect(result).toHaveProperty('error');
+      expect((result as { error: string }).error).toContain('Duplicate');
+    });
+
     it('parent task has taskKind "plan" and orchestration capability', () => {
       const result = launchTemplate('campaign', { userId: 'manager' }, tm, dispatcher);
       expect(result!.parent.taskKind).toBe('plan');
