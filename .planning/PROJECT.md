@@ -31,14 +31,18 @@ Every task's process and output is captured in shared memory, so the team never 
 
 ### Active
 
-- [ ] Structured memory extraction — LLM extracts conclusion, decision reason, reusable scope from task results
-- [ ] History injection — new tasks auto-search related past conclusions and inject as context
-- [ ] Coordinator agent — coordinate task type that decomposes big goals into sub-task DAGs
-- [ ] Declarative hook engine — event-driven actions (notify, chain tasks, custom) via config not code
 - [ ] Web kanban UI (task board, agent status, task detail)
 - [ ] Historical task browsing and search
 - [ ] Progress overview for managers (who's done, who's pending)
 - [ ] Lovart MCP integration (AI image generation via API)
+
+### Validated (v2.0)
+
+- ✓ Typed worker runtime with harness adapters (Claude, Gemini, Codex) — v2.0
+- ✓ Structured memory extraction — LLM extracts conclusion fields from task results — v2.0
+- ✓ History injection — new tasks auto-search related past conclusions and inject as context — v2.0
+- ✓ Coordinator agent — coordinate task type decomposes goals into sub-task DAGs — v2.0
+- ✓ Declarative hook engine — event-driven actions via JSON config with hot-reload — v2.0
 
 ### Out of Scope
 
