@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Intelligence Layer
 status: executing
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-04-01T03:38:10.462Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-04-01T03:38:56.167Z"
 last_activity: 2026-04-01
 progress:
   total_phases: 4
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 ## Current Position
 
 Phase: 04 (worker-runtime-foundation) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-04-01
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 04 P01 | 157 | 3 tasks | 6 files |
 | Phase 04 P03 | 145 | 2 tasks | 4 files |
+| Phase 04 P02 | 176 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,7 @@ Recent decisions affecting current work:
 - [v2.0 Roadmap revision]: CC source deep dive (freestylefly/claude-code) revealed worker runtime is prerequisite, not feature
 - [Phase 04]: Used * not workspace:* for npm deps; inline types in shared to avoid circular deps
 - [Phase 04]: Hive tools are static constants, not DB-backed; harness tools stored per-agent in Map
+- [Phase 04]: Each adapter spawns CLI as child process with stdin pipe — matches existing worker-adapter.sh pattern
 
 ### Pending Todos
 
@@ -89,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-01T03:38:10.460Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-04-01T03:38:56.165Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
