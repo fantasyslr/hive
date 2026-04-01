@@ -32,7 +32,7 @@
 
 ### Hook Engine
 
-- [ ] **HOOK-01**: Declarative hook definitions via JSON config (on event + if condition + action)
+- [x] **HOOK-01**: Declarative hook definitions via JSON config (on event + if condition + action)
 - [ ] **HOOK-02**: Action types: http (webhook POST), create_task (chain tasks), memory_search (inject context)
 - [ ] **HOOK-03**: Hook config hot-reload — file changes apply without server restart
 
@@ -75,7 +75,7 @@
 | CORD-02 | Phase 6 | Complete |
 | CORD-03 | Phase 6 | Complete |
 | CORD-04 | Phase 6 | Complete |
-| HOOK-01 | Phase 7 | Pending |
+| HOOK-01 | Phase 7 | Complete |
 | HOOK-02 | Phase 7 | Pending |
 | HOOK-03 | Phase 7 | Pending |
 
