@@ -6,3 +6,9 @@ dist/
 .data/
 .DS_Store
 .tmp-pre-restart-board.json
+
+# Runtime state (machine-local, not for version control)
+.omc/state/
+.omc/sessions/
+.omc/plans/
+.omx/

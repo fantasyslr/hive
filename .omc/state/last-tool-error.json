@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"node -e \\\"\\nconst { MemoryStore } = require('./packages/hive-memory/src/store.ts');\\n\\\" 2>&1 | head -3; echo \\\"---\\\"; npx tsx -e \\\"\\nimport { MemoryStore } from './packages/hive-memory/src...",
-  "error": "Exit code 1\nnode:internal/modules/esm/resolve:1004\n    throw error;\n    ^\n---\n[eval]:6\nconst all = store.getAll();\n                  ^\n\nTypeError: store.getAll is not a function\n    at [eval]:6:19\n    at runScriptInThisContext (node:internal/vm:219:10)\n    at node:internal/process/execution:451:12\n    at [eval]-wrapper:6:24\n    at runScriptInContext (node:internal/process/execution:449:60)\n    at evalFunction (node:internal/process/execution:283:30)\n    at asyncRunEntryPointWithESMLoader (node:i...",
-  "timestamp": "2026-03-31T02:48:54.800Z",
-  "retry_count": 1
-}
