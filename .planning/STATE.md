@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Intelligence Layer
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-04-01T03:33:40.071Z"
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-04-01T03:38:10.462Z"
 last_activity: 2026-04-01
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 3
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 ## Current Position
 
 Phase: 04 (worker-runtime-foundation) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-04-01
 
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 04 P01 | 157 | 3 tasks | 6 files |
+| Phase 04 P03 | 145 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,7 @@ Recent decisions affecting current work:
 - [v2.0 Roadmap]: HOOK last — connects everything with declarative events, needs stable substrate
 - [v2.0 Roadmap revision]: CC source deep dive (freestylefly/claude-code) revealed worker runtime is prerequisite, not feature
 - [Phase 04]: Used * not workspace:* for npm deps; inline types in shared to avoid circular deps
+- [Phase 04]: Hive tools are static constants, not DB-backed; harness tools stored per-agent in Map
 
 ### Pending Todos
 
@@ -87,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-01T03:33:40.069Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-04-01T03:38:10.460Z
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None
