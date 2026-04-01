@@ -27,7 +27,7 @@ export interface RegisteredAgent extends AgentCard {
 
 export type TaskStatus = 'pending' | 'claimed' | 'working' | 'done' | 'failed';
 
-export type TaskKind = 'plan' | 'execute' | 'verify' | 'fix' | 'review' | 'explore' | 'custom';
+export type TaskKind = 'plan' | 'execute' | 'verify' | 'fix' | 'review' | 'explore' | 'custom' | 'coordinate' | 'synthesize';
 
 export interface Task {
   id: string;

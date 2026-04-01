@@ -84,6 +84,19 @@ export const PublishEventSchema = z.object({
   data: z.record(z.string(), z.unknown()).default({}),
 });
 
+export const BatchSubTaskSchema = z.object({
+  title: z.string().min(1).max(256),
+  description: z.string().max(4096).default(''),
+  taskKind: z.string().min(1).max(32).optional(),
+  requiredCapabilities: z.array(z.string().min(1)).min(1),
+  dependsOn: z.array(z.string().min(1).max(256)).optional(), // title references, not IDs
+});
+
+export const BatchCreateTasksSchema = z.object({
+  parentTaskId: z.string().min(1).max(64),
+  tasks: z.array(BatchSubTaskSchema).min(1).max(20),
+});
+
 export const P2PRequestSchema = z.object({
   fromAgentId: z.string().min(1).max(64),
   payload: z.record(z.string(), z.unknown()),
