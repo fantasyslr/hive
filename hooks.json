@@ -1,0 +1,15 @@
+{
+  "hooks": [
+    {
+      "_comment": "Example: notify Feishu when a task completes",
+      "on": "task.completed",
+      "if": { "field": "task.taskKind", "eq": "execute" },
+      "action": {
+        "type": "http",
+        "params": {
+          "url": "https://open.feishu.cn/open-apis/bot/v2/hook/YOUR_WEBHOOK_ID"
+        }
+      }
+    }
+  ]
+}

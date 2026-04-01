@@ -1,5 +1,6 @@
 import express from 'express';
 import { join } from 'node:path';
+import { readFileSync, watch } from 'node:fs';
 import { config, logger } from './config.js';
 import { agentsRouter } from './routes/agents.js';
 import { tasksRouter } from './routes/tasks.js';
@@ -22,6 +23,8 @@ import { VerifyLoop } from './services/verify-loop.js';
 import { Dispatcher } from './services/dispatcher.js';
 import { DependencyUnblocker } from './services/dependency-unblocker.js';
 import { CoordinatorService } from './services/coordinator-service.js';
+import { HookEngine } from './services/hook-engine.js';
+import { HttpAction, CreateTaskAction, MemorySearchAction } from './services/hook-actions.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { authMiddleware } from './middleware/auth.js';
 
@@ -36,6 +39,11 @@ const verifyLoop = new VerifyLoop(taskMachine, eventBus);
 const dispatcher = new Dispatcher(registry, taskMachine);
 const dependencyUnblocker = new DependencyUnblocker(taskMachine, eventBus, dispatcher);
 const coordinatorService = new CoordinatorService(taskMachine, eventBus, dispatcher, null);
+const hookEngine = new HookEngine(eventBus, {
+  http: new HttpAction(),
+  create_task: new CreateTaskAction(taskMachine),
+  memory_search: new MemorySearchAction(memoryService),
+});
 const memoryRouter = createMemoryRouter(memoryService);
 
 // Health check — unauthenticated (for load balancer / monitoring)
@@ -111,6 +119,40 @@ async function start() {
   verifyLoop.registerHooks();
   dependencyUnblocker.registerHooks();
   coordinatorService.registerHooks();
+
+  // 4b. Load declarative hooks
+  hookEngine.registerHooks();
+  const hooksPath = join(process.cwd(), 'hooks.json');
+  try {
+    const raw = JSON.parse(readFileSync(hooksPath, 'utf-8'));
+    const result = hookEngine.loadConfig(raw);
+    if (result.ok) {
+      logger.info('Declarative hooks loaded from hooks.json');
+    } else {
+      logger.warn({ error: result.error }, 'Invalid hooks.json — no declarative hooks active');
+    }
+  } catch (err) {
+    logger.warn({ err }, 'hooks.json not found or unreadable — no declarative hooks active');
+  }
+
+  // 4c. Hot-reload hooks.json
+  let reloadTimer: ReturnType<typeof setTimeout> | null = null;
+  watch(hooksPath, () => {
+    if (reloadTimer) clearTimeout(reloadTimer);
+    reloadTimer = setTimeout(() => {
+      try {
+        const raw = JSON.parse(readFileSync(hooksPath, 'utf-8'));
+        const result = hookEngine.loadConfig(raw);
+        if (result.ok) {
+          logger.info('hooks.json hot-reloaded');
+        } else {
+          logger.warn({ error: result.error }, 'hooks.json hot-reload rejected — keeping previous config');
+        }
+      } catch (err) {
+        logger.warn({ err }, 'hooks.json hot-reload failed to read file — keeping previous config');
+      }
+    }, 500);
+  });
 
   // 5. Start prompt watcher
   const promptPath = join(process.cwd(), 'docs', 'orchestrator-prompt.md');
