@@ -120,8 +120,8 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Extend TaskKind with coordinate/synthesize + batch sub-task creation API (CORD-01, CORD-02)
-- [ ] 06-02-PLAN.md — Persistent worker session support in HarnessAdapter + ClaudeAdapter (CORD-04)
+- [x] 06-01-PLAN.md — Extend TaskKind with coordinate/synthesize + batch sub-task creation API (CORD-01, CORD-02)
+- [x] 06-02-PLAN.md — Persistent worker session support in HarnessAdapter + ClaudeAdapter (CORD-04)
 - [ ] 06-03-PLAN.md — CoordinatorService LLM decomposition + synthesis trigger in DependencyUnblocker (CORD-01, CORD-03)
 
 ### Phase 7: Hook Engine

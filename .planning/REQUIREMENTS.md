@@ -28,7 +28,7 @@
 - [ ] **CORD-01**: New taskKind values `coordinate` and `synthesize` for task decomposition and result aggregation
 - [ ] **CORD-02**: Batch sub-task creation API — single POST creates multiple tasks with dependsOn relationships
 - [ ] **CORD-03**: Auto-create synthesize task when all sub-tasks of a coordinate task complete
-- [ ] **CORD-04**: Worker supports persistent session mode — consecutive tasks (explore → execute → fix → verify) share context without cold restart
+- [x] **CORD-04**: Worker supports persistent session mode — consecutive tasks (explore → execute → fix → verify) share context without cold restart
 
 ### Hook Engine
 
@@ -74,7 +74,7 @@
 | CORD-01 | Phase 6 | Pending |
 | CORD-02 | Phase 6 | Pending |
 | CORD-03 | Phase 6 | Pending |
-| CORD-04 | Phase 6 | Pending |
+| CORD-04 | Phase 6 | Complete |
 | HOOK-01 | Phase 7 | Pending |
 | HOOK-02 | Phase 7 | Pending |
 | HOOK-03 | Phase 7 | Pending |
